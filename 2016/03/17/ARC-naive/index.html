@@ -1,0 +1,270 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>浅谈iOS中的内存管理(五) - ARC中的Trick | Jack Alan</title>
+  <meta name="author" content="Jack Alan">
+  
+  <meta name="description" content="以前一直都以为 ARC 只是做了在编译期帮助开发者寻找合适的位置插入诸如 release autorelease这样的事情，不过看了一些资料以后，发现 ARC 似乎并不仅仅在编译期有优化，甚至在运行时期也有一些优化，优化的目的之一就是巧妙地跳过调用autorelease方法。这里做一下总结。
+正如前">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="浅谈iOS中的内存管理(五) - ARC中的Trick"/>
+  <meta property="og:site_name" content="Jack Alan"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.ico" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jack Alan" type="application/atom+xml">
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+<link rel="stylesheet" href="/css/style.css">
+  <script src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+
+<body>
+  <header id="header" class='normal_mode'>
+    <nav id="main-nav">
+  <ul class='container'>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+      <li><a href="/Books&Courses">Books &amp; Courses</a></li>
+    
+      <li><a href="/Links">Friends</a></li>
+    
+      <li><a href="/AboutMe">About</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+  </header>
+  <div id="content" class="container">
+    <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+      <time datetime="2016-03-17T15:00:18.000Z"><a href="/2016/03/17/ARC-naive/">Thu, Mar 17 2016, 11:00:18 am</a></time>
+
+  
+    <h1 class="title">浅谈iOS中的内存管理(五) - ARC中的Trick</h1>
+  
+
+
+
+  
+  <div class="tags">
+  	<i class="fa fa-tag"></i>
+    <a href="/tags/iOS/">iOS</a>, <a href="/tags/ARC/">ARC</a>, <a href="/tags/内存管理/">内存管理</a>
+  </div>
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <hr>
+<p>以前一直都以为 ARC 只是做了在编译期帮助开发者寻找合适的位置插入诸如 <code>release</code> <code>autorelease</code>这样的事情，不过看了一些资料以后，发现 ARC 似乎并不仅仅在编译期有优化，甚至在运行时期也有一些优化，优化的目的之一就是巧妙地跳过调用<code>autorelease</code>方法。这里做一下总结。</p>
+<p>正如前面几篇文章提到的那样，MRC 时代，如果一个方法创建了对象，然后 <code>return</code> 这个对象，那就需要手动调用对象的 <code>autorelease</code> 方法，以实现 <code>非自己生成的对象自己也能持有</code> 这样的需求。以前一直都以为编译器无非是在编译期帮我们找到了合适的位置插入 <code>autorelease</code>，但是现在看来，并不是这么简单，ARC 似乎更聪明一些。</p>
+<p>ARC 中有一个非常巧妙地运行时的优化方案用来跳过某些情况下 <code>autorelease</code>机制的调用，如下是大致的流程：</p>
+<p>当方法全部基于 ARC 实现时，在方法 return 的时候，ARC 会调用 <code>objc_autoreleaseReturnValue()</code> 替代 MRC 下的 <code>autorelease</code>。在 MRC 下想要 retain 的时候，ARC 会调用 <code>objc_retainAutoreleasedReturnValue()</code>。</p>
+<p>在调用 <code>objc_autoreleaseReturnValue()</code>时，会在栈上查询 return address 以确定 return value 是否会被传给 <code>objc_retainAutoreleasedReturnValue</code>。如果没传，说明返回值不能直接从提供方发送给接受方，这时就会调用 <code>autorelease</code>。反之，如果返回值能顺利地从提供方传送给接收方，那么就会跳过 <code>autorelease</code> 并修改 return address 以跳过 retain 的过程。</p>
+
+      
+    </div>
+    <footer>
+      
+          
+<!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+  <span class="jiathis_txt">分享到：</span>
+  <a class="jiathis_button_weixin">微信</a>
+  <a class="jiathis_button_tsina">新浪微博</a>
+  <a class="jiathis_button_renren">人人网</a>
+  <a class="jiathis_button_qzone">QQ空间</a>
+  <a class="jiathis_button_douban">豆瓣</a>
+  <a class="jiathis_button_pocket">Pocket</a>
+  <a href="http://www.jiathis.com/share?uid=901656" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank">更多</a>
+  <a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript" src="http://v3.jiathis.com/code_mini/jia.js?uid=901656" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+          <div class="clearfix"></div>
+          <nav id="pagination">
+  
+    <a href="/2016/03/25/浅谈iOS中的闭包（三) - ARC 对 Block 做了什么？/" class="alignleft prev"><i class="fa fa-long-arrow-left">上一页</i></a>
+  
+  
+    <a href="/2016/03/11/code-zen/" class="alignright next">下一页<i class="fa fa-long-arrow-right"></i></a>
+  
+  <div class="clearfix"></div>
+</nav>
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">Kommentare</h1>
+
+  
+      <!-- Duoshuo Comment BEGIN -->
+<div class="ds-thread" data-thread-key="/2016/03/17/ARC-naive/"></div>
+<!-- Duoshuo Comment END -->
+  
+</section>
+
+
+
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div>
+  
+  &copy; 2016 Jack Alan
+  
+</div>
+Powered by <a href="http://iJack.pw/" title="Jack Alan" target="_blank" rel="external">Jack Alan</a> and <a href="http://pages.github.com/" title="GitHub Pages" target="_blank" rel="external">GitHub Pages</a>
+
+<div class="clearfix"></div>
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3Ffe3ef7effe40ca4903cec1453f5c809f' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+ What ?
+<script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1254084718'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s95.cnzz.com/z_stat.php%3Fid%3D1254084718%26show%3Dpic' type='text/javascript'%3E%3C/script%3E"));</script>
+<OBJECT style="border: 0px" type="text/x-scriptlet" data="" width=0 Height=0 ></OBJECT>
+ </footer>
+  
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
+
+
+
+
+    <script type="text/javascript">
+        (function(){
+
+            $(window).scroll(function(){
+
+                var scrollTop = $(window).scrollTop();
+                if ( scrollTop >200 ){
+                    $("#main-nav").removeClass('normal_mode').addClass('top_mode');
+                } else{
+                    $("#main-nav").removeClass('top_mode').addClass('normal_mode');
+                }
+
+            });
+
+        })();
+    </script>
+
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript">
+  (function($){
+    $('.fancybox').fancybox({
+      'titlePosition': 'inside'
+    });
+  })(jQuery);
+  </script>
+
+
+
+    
+    <script type="text/javascript">
+      var duoshuoQuery = {short_name:"ijack"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.src = 'http://static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0] 
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+<script type="text/javascript">
+  
+  $(function(){
+
+    $('.title').hover(
+      function() {      
+        $(this).stop().animate(
+          {'marginLeft': '10px'}, 200
+        );   
+      }, 
+      function() {       
+        $(this).stop().animate({'marginLeft': '0px'}, 200);      
+      
+    });   
+
+  });
+
+</script>
+
+
+
+</body>
+</html>

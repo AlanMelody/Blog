@@ -1,0 +1,355 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>浅谈iOS设计模式之单例模式 | Jack Alan</title>
+  <meta name="author" content="Jack Alan">
+  
+  <meta name="description" content="本文主要描述的问题主要有：如何在iOS下创建单例，以及如何创建高效的线程安全的单例，以及如何使用依赖注入来避免单例的滥用。
+1.1 如何创建单例iOS中单例模式很常见，比如Cocoa中的一些对象方法，[UIColor redColor]等等。
+顾名思义，单例模式确保了一个类只有一个实例。
+一个常见的">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="浅谈iOS设计模式之单例模式"/>
+  <meta property="og:site_name" content="Jack Alan"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.ico" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jack Alan" type="application/atom+xml">
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+<link rel="stylesheet" href="/css/style.css">
+  <script src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+
+<body>
+  <header id="header" class='normal_mode'>
+    <nav id="main-nav">
+  <ul class='container'>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+      <li><a href="/Books&Courses">Books &amp; Courses</a></li>
+    
+      <li><a href="/Links">Friends</a></li>
+    
+      <li><a href="/AboutMe">About</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+  </header>
+  <div id="content" class="container">
+    <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+      <time datetime="2016-01-20T03:37:04.000Z"><a href="/2016/01/19/iOS设计模式之单例模式/">Tue, Jan 19 2016, 10:37:04 pm</a></time>
+
+  
+    <h1 class="title">浅谈iOS设计模式之单例模式</h1>
+  
+
+
+
+  
+  <div class="tags">
+  	<i class="fa fa-tag"></i>
+    <a href="/tags/iOS/">iOS</a>, <a href="/tags/设计模式/">设计模式</a>
+  </div>
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <hr>
+<p>本文主要描述的问题主要有：如何在iOS下创建单例，以及如何创建高效的线程安全的单例，以及如何使用依赖注入来避免单例的滥用。</p>
+<h2 id="1-1-如何创建单例"><a href="#1-1-如何创建单例" class="headerlink" title="1.1 如何创建单例"></a>1.1 如何创建单例</h2><p>iOS中单例模式很常见，比如Cocoa中的一些对象方法，<code>[UIColor redColor]</code>等等。</p>
+<p>顾名思义，单例模式确保了一个类只有一个实例。</p>
+<p>一个常见的写法如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* Singleton.h */</span></div><div class="line"><span class="meta">#import <span class="meta-string">&lt;Foundation/Foundation.h&gt;</span></span></div><div class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">Singleton</span> : <span class="title">NSObject</span></span></div><div class="line">+ (Singleton *)sharedInstance;</div><div class="line"><span class="keyword">@end</span></div><div class="line"></div><div class="line"></div><div class="line"><span class="comment">/* Singleton.m */</span></div><div class="line"><span class="meta">#import <span class="meta-string">"Singleton.h"</span></span></div><div class="line"></div><div class="line"><span class="keyword">static</span> Singleton *instance = <span class="literal">nil</span>;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">Singleton</span> </span></div><div class="line">+ (Singleton *)sharedInstance &#123; </div><div class="line">    <span class="keyword">if</span> (!instance) &#123; </div><div class="line">        instance = [[<span class="keyword">super</span> alloc] init];</div><div class="line">    &#125; </div><div class="line">    <span class="keyword">return</span> instance; </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这种写法的优点是，可以延迟加载，按需分配内存以节省开销。</p>
+<p>但是，这并非一个线程安全的写法，比如两个或多个线程并发的调用<code>sharedInstance</code>方法，有可能会得到多个实例，这里有三种方法来创建一个线程安全的单例。</p>
+<h2 id="1-2-线程安全的单例"><a href="#1-2-线程安全的单例" class="headerlink" title="1.2 线程安全的单例"></a>1.2 线程安全的单例</h2><h3 id="1-2-1-synchronized"><a href="#1-2-1-synchronized" class="headerlink" title="1.2.1 @synchronized"></a>1.2.1 @synchronized</h3><p>可以使用@synchronized进行加锁，代码如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* Singleton.h */</span></div><div class="line"><span class="meta">#import <span class="meta-string">&lt;Foundation/Foundation.h&gt;</span></span></div><div class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">Singleton</span> : <span class="title">NSObject</span></span></div><div class="line">+ (Singleton *)sharedInstance;</div><div class="line"><span class="keyword">@end</span></div><div class="line"></div><div class="line"><span class="comment">/* Singleton.m */</span></div><div class="line"><span class="meta">#import <span class="meta-string">"Singleton.h"</span></span></div><div class="line"></div><div class="line"><span class="keyword">static</span> Singleton *instance = <span class="literal">nil</span>;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">Singleton</span> </span></div><div class="line">+ (Singleton *)sharedInstance &#123; </div><div class="line">    <span class="keyword">@synchronized</span> (<span class="keyword">self</span>) &#123;</div><div class="line">        <span class="keyword">if</span> (!instance) &#123; </div><div class="line">            instance = [[<span class="keyword">super</span> alloc] init];</div><div class="line">        &#125; </div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> instance; </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这种写法也是懒加载，不过虽然保证了线程安全但是由于锁的存在当多线程访问时，性能会降低。</p>
+<h3 id="1-2-2-双重检查锁"><a href="#1-2-2-双重检查锁" class="headerlink" title="1.2.2 双重检查锁"></a>1.2.2 双重检查锁</h3><p>双重检查锁，可以避免对除第一次调用外的所有调用都实行同步的昂贵代价。</p>
+<p>就是并不是每次进入<code>sharedInstance</code>方法都需要同步，而是先不同步，进入方法过后，先检查实例是否存在，如果不存在才进入下面的同步块，这是第一重检查。</p>
+<p>进入同步块过后，再次检查实例是否存在，如果不存在，就在同步的情况下创建一个实例，这是第二重检查。</p>
+<p>如此，就只需要同步一次了，从而减少了多次在同步情况下进行判断所浪费的时间。</p>
+<p>代码如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* Singleton.h */</span></div><div class="line"><span class="meta">#import <span class="meta-string">&lt;Foundation/Foundation.h&gt;</span></span></div><div class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">Singleton</span> : <span class="title">NSObject</span></span></div><div class="line">+ (Singleton *)sharedInstance;</div><div class="line"><span class="keyword">@end</span></div><div class="line"></div><div class="line"><span class="comment">/* Singleton.m */</span></div><div class="line"><span class="meta">#import <span class="meta-string">"Singleton.h"</span></span></div><div class="line"></div><div class="line"><span class="keyword">static</span> Singleton *instance = <span class="literal">nil</span>;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">Singleton</span> </span></div><div class="line">+ (Singleton *)sharedInstance &#123; </div><div class="line">    <span class="keyword">if</span> (!instance) &#123;</div><div class="line">        <span class="keyword">@synchronized</span> (<span class="keyword">self</span>) &#123;</div><div class="line">            <span class="keyword">if</span> (!instance) &#123; </div><div class="line">                instance = [[<span class="keyword">super</span> alloc] init];</div><div class="line">            &#125; </div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> instance; </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这段代码乍一看，似乎没什么问题，问题是CPU和编译器可能会对内存访问指令进行重新排序。参考了一下<a href="https://www.mikeash.com/pyblog/friday-qa-2009-10-02-care-and-feeding-of-singletons.html" target="_blank" rel="external">Care and Feeding of Singletons</a>这篇文章中的方法。可以在访问变量前插入<code>barriers</code>并且使用<code>volatile</code>关键字。内存<code>barriers</code>在<code>libkern/OSAtomic.h</code>头文件中，这用来解决CPU的问题，<code>vilatile</code>关键字用来解决编译器的问题。代码如下：</p>
+<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* Singleton.h */</span></div><div class="line"><span class="meta">#import <span class="meta-string">&lt;Foundation/Foundation.h&gt;</span></span></div><div class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">Singleton</span> : <span class="title">NSObject</span></span></div><div class="line">+ (Singleton *)sharedInstance;</div><div class="line"><span class="keyword">@end</span></div><div class="line"></div><div class="line"></div><div class="line"><span class="comment">/* Singleton.m */</span></div><div class="line"><span class="meta">#import <span class="meta-string">"Singleton.h"</span></span></div><div class="line"><span class="meta">#import <span class="meta-string">"libkern/OSAtomic.h"</span></span></div><div class="line"><span class="keyword">static</span> Singleton * <span class="keyword">volatile</span> instance = <span class="literal">nil</span>;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">Singleton</span> </span></div><div class="line">+ (Singleton *)sharedInstance &#123; </div><div class="line">    <span class="keyword">if</span> (!instance) &#123;</div><div class="line">        <span class="keyword">@synchronized</span> (<span class="keyword">self</span>) &#123;</div><div class="line">            <span class="keyword">if</span> (!instance) &#123; </div><div class="line">                OSMemoryBarrier();</div><div class="line">                instance = [[<span class="keyword">super</span> alloc] init];</div><div class="line">            &#125; </div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    OSMemoryBarrier();</div><div class="line">    <span class="keyword">return</span> instance; </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>下面简单的介绍一下内存屏障<code>memory barrier</code>与<code>volatile</code>：</p>
+<h4 id="1-2-2-1-内存屏障"><a href="#1-2-2-1-内存屏障" class="headerlink" title="1.2.2.1 内存屏障"></a>1.2.2.1 内存屏障</h4><p>为了达到最佳的性能，通常会对汇编基本的指令进行重新排序以尽可能保持CPU的指令像流水线一样。</p>
+<p>看似独立的变量实际上有可能相互影响，编译器优化有可能把这些变量的访问更新为错误的顺序，导致潜在不不正确结果。</p>
+<p>内存屏障即可避免汇编指令的重新排序优化，迫使CPU先完成位于障碍前的任何加载和存储操作，然后才允许它执行位于屏障后的操作。</p>
+<p>内存屏障可以确保一个线程的内存操作可以按照预定的顺序完成。</p>
+<h4 id="1-2-2-2-volatile"><a href="#1-2-2-2-volatile" class="headerlink" title="1.2.2.2 volatile"></a>1.2.2.2 volatile</h4><p>第一次接触这个关键字是操作系统的实验上，<a href="http://www.desgemini.com" target="_blank" rel="external">董师兄</a>教我如何修改出一份无法被查重的代码，哈哈哈哈。</p>
+<p>编译器可以进行代码优化，把变量加载进寄存器中，对于一般的变量没有什么问题，但是如果这个变量对多个线程可见，这种优化就可能会阻止其他线程发现这个变量的改变。在变量之前加上关键字volatile可以强制编译器每次使用变量的时候都从内存里面加载。</p>
+<p>简单地说：<code>volatile</code>就是告诉编译器，在读取该变量数值的时候，应该直接从内存读取，而不是从寄存器读取。</p>
+<h4 id="1-2-2-3-总结"><a href="#1-2-2-3-总结" class="headerlink" title="1.2.2.3 总结"></a>1.2.2.3 总结</h4><p>虽然相较于上一种方法减少了部分锁的开销，但是这个开销依然不小。而且实现方式本身颇具争议且复杂。</p>
+<h3 id="1-2-3-GCD"><a href="#1-2-3-GCD" class="headerlink" title="1.2.3 GCD"></a>1.2.3 GCD</h3><p>这里主要利用GCD中的<code>dispatch_once</code>方法，这是最普遍也是苹果最推荐的方法，函数原型如下：</p>
+<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void</span> <span class="built_in">dispatch_once</span>(</div><div class="line">   <span class="built_in">dispatch_once_t</span> *predicate,</div><div class="line">   dispatch_block_t block);</div></pre></td></tr></table></figure>
+<p>单例实现代码如下：</p>
+<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* Singleton.h */</span></div><div class="line"><span class="meta">#import <span class="meta-string">&lt;Foundation/Foundation.h&gt;</span></span></div><div class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">Singleton</span> : <span class="title">NSObject</span></span></div><div class="line">+ (Singleton *)sharedInstance;</div><div class="line"><span class="keyword">@end</span></div><div class="line"></div><div class="line"></div><div class="line"><span class="comment">/* Singleton.m */</span></div><div class="line"><span class="meta">#import <span class="meta-string">"Singleton.h"</span></span></div><div class="line"></div><div class="line"><span class="keyword">static</span> Singleton *instance = <span class="literal">nil</span>;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">Singleton</span> </span></div><div class="line">+ (Singleton *)sharedInstance &#123; </div><div class="line"></div><div class="line">    <span class="keyword">static</span> <span class="built_in">dispatch_once_t</span> predicate;</div><div class="line"></div><div class="line">    <span class="built_in">dispatch_once</span>(&amp;predicate, ^&#123;</div><div class="line">        instance = [[Singleton alloc] init];</div><div class="line">    &#125;);</div><div class="line">    <span class="keyword">return</span> instance; </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这样的方法有很多优势，首先满足了线程安全问题，其次很好满足静态分析器要求。</p>
+<p>GCD可以确保以更快的方式完成这些检测，它可以保证<code>block</code>中的代码在任何线程通过<code>dispatch_once</code>调用之前被执行，但它不会强制每次调用这个函数都让代码进行同步控制。</p>
+<p>苹果的文档<a href="https://developer.apple.com/library/ios/documentation/Performance/Reference/GCD_libdispatch_Ref/index.html#//apple_ref/c/func/dispatch_once" target="_blank" rel="external">documentation for dispatch_once</a>是这么说的：</p>
+<blockquote>
+<p>The predicate must point to a variable stored in global or static scope. The result of using a predicate with automatic or dynamic storage (including Objective-C instance variables) is undefined.</p>
+</blockquote>
+<p>所以，如果你的predicate不是静态的、不是全局的，还是不能用GCD。其实如果你去看这个函数所在的头文件，你会发现目前它的实现其实是一个宏。</p>
+<h2 id="2-1-单例的滥用"><a href="#2-1-单例的滥用" class="headerlink" title="2.1 单例的滥用"></a>2.1 单例的滥用</h2><p>在iOS中可以很容易的创建一个单例，不过人们似乎针对单例模式本身也有一些争议。有人说它是<a href="http://misko.hevery.com/2008/08/17/singletons-are-pathological-liars/" target="_blank" rel="external">骗子</a>，或者是梦魇。</p>
+<p>一个普遍的结论是这样的：单例应该只用来保存全局的状态，并且不能和任何作用域绑定。如果这些状态的作用域比一个完整的应用程序的生命周期要短，那么这个状态就不应该使用单例来管理。</p>
+<p>这里不能否认的是单例模式确实有它的好处，如下会展示一些使用单例模式带来的问题。</p>
+<h3 id="2-1-1-单元测试的例子"><a href="#2-1-1-单元测试的例子" class="headerlink" title="2.1.1 单元测试的例子"></a>2.1.1 单元测试的例子</h3><p>这里借用<a href="http://objc.io" target="_blank" rel="external">objc.io</a>的一个例子，类似QQ和微信在App中就可以打开网页，如下是构建这个网页查看器的代码，其中构建了一个简单的<code>URL cache</code>。</p>
+<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">SPURLCache</span></span></div><div class="line"></div><div class="line">+ (SPCache *)sharedURLCache;</div><div class="line"></div><div class="line">- (<span class="keyword">void</span>)storeCachedResponse:(<span class="built_in">NSCachedURLResponse</span> *)cachedResponse forRequest:(<span class="built_in">NSURLRequest</span> *)request;</div><div class="line"></div><div class="line"><span class="keyword">@end</span></div></pre></td></tr></table></figure>
+<p>这里构建三个测试用例，如下：</p>
+<ul>
+<li><p>无网络连接时展示错误信息</p>
+</li>
+<li><p>正确处理服务器返回的请求错误</p>
+</li>
+<li><p>成功请求，展示服务器返回的内容</p>
+</li>
+</ul>
+<p>至此，你可能还看不出任何的问题，但是当程序运行一段时间后，有人改变了测试用例的顺序时，就有可能出现问题。</p>
+<p>比如先运行处理成功的那个测试用例，然后再运行其他两个。此时没有网，也可以展示此前缓存的用户数据了，这与此前预期的不一致。因为<code>URL cache</code>这个单例把不同测试用例之间的<code>response</code>缓存起来了。</p>
+<p>持久化状态一直是单元测试的宿敌，因为单元测试在各个测试用例相互独立的情况下才有效。如果状态从一个测试用例传递到了另外一个，这样就和测试用例的执行顺序就有关系了。</p>
+<h3 id="2-1-2-生命周期"><a href="#2-1-2-生命周期" class="headerlink" title="2.1.2 生命周期"></a>2.1.2 生命周期</h3><p>此前介绍了如何使用GCD创建一个线程安全的单例，但是这并不意味着以后程序的运行过程中就只会有一个实例了。</p>
+<p>一个普遍的例子如下：</p>
+<p>构建一个好友列表，每个好友都会有一个头像，可以自动下载并缓存图片。</p>
+<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">SPThumbnailCache</span> : <span class="title">NSObject</span></span></div><div class="line"></div><div class="line">+ (<span class="keyword">instancetype</span>)sharedThumbnailCache;</div><div class="line"></div><div class="line">- (<span class="keyword">void</span>)cacheProfileImage:(<span class="built_in">NSData</span> *)imageData forUserId:(<span class="built_in">NSString</span> *)userId;</div><div class="line">- (<span class="built_in">NSData</span> *)cachedProfileImageForUserId:(<span class="built_in">NSString</span> *)userId;</div><div class="line"></div><div class="line"><span class="keyword">@end</span></div></pre></td></tr></table></figure>
+<p>和此前一样，看起来似乎一切正常。但是如果考虑到注销/账户切换功能呢？</p>
+<p>用户相关的状态存储在全局单例中。当用户注销后，我们希望能够清理掉所有的硬盘上的持久化状态。否则，就会把这些被遗弃的数据残留在用户的设备上，浪费宝贵的硬盘空间。对于用户登出又登录了一个新的账号这种情况，我们也想能够对这个新用户使用一个全新的<code>SPThumbnailCache</code>实例。</p>
+<p>问题在于按照定义单例被认为是「创建一次，永久有效」的实例。或许你可能会想到如下的一中解决方案，即在用户登出时移除这个单例：</p>
+<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">static</span> SPThumbnailCache *sharedThumbnailCache;</div><div class="line"></div><div class="line">+ (<span class="keyword">instancetype</span>)sharedThumbnailCache</div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (!sharedThumbnailCache) &#123;</div><div class="line">        sharedThumbnailCache = [[<span class="keyword">self</span> alloc] init];</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> sharedThumbnailCache;</div><div class="line">&#125;</div><div class="line"></div><div class="line">+ (<span class="keyword">void</span>)tearDown</div><div class="line">&#123;</div><div class="line">    <span class="comment">// The SPThumbnailCache will clean up persistent states when deallocated</span></div><div class="line">    sharedThumbnailCache = <span class="literal">nil</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>乍一看这段代码似乎也没什么问题，但是如果仔细考虑，假设当用户正在执行登出操作时，有一些后台任务正在执行把图片保存到缓存中的操作，</p>
+<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">dispatch_async</span>(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, <span class="number">0</span>), ^&#123;</div><div class="line">    [[SPThumbnailCache sharedThumbnailCache] cacheProfileImage:newImage forUserId:userId];</div><div class="line">&#125;);</div></pre></td></tr></table></figure>
+<p>需要保证在所有的后台任务完成前，<code>tearDown</code>一定不能执行。</p>
+<p>这确保了<code>newImage</code>可以被正确的清理掉。或者，我们需要保证在缩略图 cache 被移除时，后台缓存任务一定要被取消掉。否则，一个新的缩略图 cache 的实例将会被延迟创建，并且此前用户的数据会被存储在它里面。</p>
+<p>由于单例自己管理自己的生命周期，关闭一个单例变得相当的复杂和困难。</p>
+<p>分析至此，得到的结论是：这个缩略图<code>cache</code>从来就不应该作为一个单例！</p>
+<p>就像一开始写到的，这里得到的教训是，单例应该只用来保存全局的状态，并且不能和任何作用域绑定。如果这些状态的作用域比一个完整的应用程序的生命周期要短，那么这个状态就不应该使用单例来管理。</p>
+<h3 id="2-2-使用依赖注入来避免单例的滥用"><a href="#2-2-使用依赖注入来避免单例的滥用" class="headerlink" title="2.2 使用依赖注入来避免单例的滥用"></a>2.2 使用依赖注入来避免单例的滥用</h3><p>单例对局部作用域的状态有非常多的坏处，如下是一个避免这些坏处的例子：</p>
+<p>图片<code>cache</code>的状态是和具体的用户绑定的，所以定义一个如下的<code>user</code>类：</p>
+<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">SPUser</span> : <span class="title">NSObject</span></span></div><div class="line"></div><div class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">readonly</span>) SPThumbnailCache *thumbnailCache;</div><div class="line"></div><div class="line"><span class="keyword">@end</span></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">SPUser</span></span></div><div class="line"></div><div class="line">- (<span class="keyword">instancetype</span>)init</div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> ((<span class="keyword">self</span> = [<span class="keyword">super</span> init])) &#123;</div><div class="line">        _thumbnailCache = [[SPThumbnailCache alloc] init];</div><div class="line"></div><div class="line">        <span class="comment">// Initialize other user-specific state...</span></div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">self</span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">@end</span></div></pre></td></tr></table></figure>
+<p>定义好友列表：</p>
+<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">SPFriendListViewController</span> : <span class="title">UIViewController</span></span></div><div class="line"></div><div class="line">- (<span class="keyword">instancetype</span>)initWithUser:(SPUser *)user;</div><div class="line"></div><div class="line"><span class="keyword">@end</span></div></pre></td></tr></table></figure>
+<p>把<code>user</code>对象作为参数传递给这个<code>view controller</code>即可。这种把依赖性传递给依赖对象的技术就叫做<code>依赖注入</code>。</p>
+<p>它具有如下的几条优点：</p>
+<ul>
+<li><p>对于阅读这个<code>SPFriendListViewController</code>头文件的人来说，可以很清楚的知道它只有在有登录用户的情况下才会被展示。</p>
+</li>
+<li><p><code>SPFriendListViewController</code>只要还在使用中，就可以强引用<code>user</code>对象，就算缓存后台任务还没有完成，其他地方的代码也可以创建和使用一个全新的<code>SPUser</code>对象，而不会在清理第一个实例时阻塞用户交互。</p>
+</li>
+</ul>
+<p>当用户登录一个新账号，应该能够构建并且与全新的<code>SPThumbnailCache</code>交互，而不需要再在销毁老的缩略图<code>cache</code>上花费精力。</p>
+<p>基于对象管理的典型规则，老的<code>view controllers</code>和老的缩略图<code>cache</code>应该能够自己在后台延迟被清理掉。</p>
+<p>简而言之，我们应该隔离用户 A 相关联的状态和用户 B 相关联的状态</p>
+<p>其实单例的滥用问题主要集中在作用域上，在面向对象思想中，我们追求的总是一个最小的作用域，但是单例可以被程序中的任何地方访问，它的全局性导致了滥用的问题。</p>
+<p>单例应该只用来保存全局的状态，并且不能和任何作用域绑定。如果这些状态的作用域比一个完整的应用程序的生命周期要短，那么这个状态就不应该使用单例来管理。(重要的事情说三遍，哈哈哈)</p>
+
+      
+    </div>
+    <footer>
+      
+          
+<!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+  <span class="jiathis_txt">分享到：</span>
+  <a class="jiathis_button_weixin">微信</a>
+  <a class="jiathis_button_tsina">新浪微博</a>
+  <a class="jiathis_button_renren">人人网</a>
+  <a class="jiathis_button_qzone">QQ空间</a>
+  <a class="jiathis_button_douban">豆瓣</a>
+  <a class="jiathis_button_pocket">Pocket</a>
+  <a href="http://www.jiathis.com/share?uid=901656" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank">更多</a>
+  <a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript" src="http://v3.jiathis.com/code_mini/jia.js?uid=901656" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+          <div class="clearfix"></div>
+          <nav id="pagination">
+  
+    <a href="/2016/01/20/iOS设计模式之委托与协议/" class="alignleft prev"><i class="fa fa-long-arrow-left">上一页</i></a>
+  
+  
+    <a href="/2016/01/15/百度地理位置反编码API/" class="alignright next">下一页<i class="fa fa-long-arrow-right"></i></a>
+  
+  <div class="clearfix"></div>
+</nav>
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">Kommentare</h1>
+
+  
+      <!-- Duoshuo Comment BEGIN -->
+<div class="ds-thread" data-thread-key="/2016/01/19/iOS设计模式之单例模式/"></div>
+<!-- Duoshuo Comment END -->
+  
+</section>
+
+
+
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div>
+  
+  &copy; 2016 Jack Alan
+  
+</div>
+Powered by <a href="http://iJack.pw/" title="Jack Alan" target="_blank" rel="external">Jack Alan</a> and <a href="http://pages.github.com/" title="GitHub Pages" target="_blank" rel="external">GitHub Pages</a>
+
+<div class="clearfix"></div>
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3Ffe3ef7effe40ca4903cec1453f5c809f' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+ What ?
+<script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1254084718'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s95.cnzz.com/z_stat.php%3Fid%3D1254084718%26show%3Dpic' type='text/javascript'%3E%3C/script%3E"));</script>
+<OBJECT style="border: 0px" type="text/x-scriptlet" data="" width=0 Height=0 ></OBJECT>
+ </footer>
+  
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
+
+
+
+
+    <script type="text/javascript">
+        (function(){
+
+            $(window).scroll(function(){
+
+                var scrollTop = $(window).scrollTop();
+                if ( scrollTop >200 ){
+                    $("#main-nav").removeClass('normal_mode').addClass('top_mode');
+                } else{
+                    $("#main-nav").removeClass('top_mode').addClass('normal_mode');
+                }
+
+            });
+
+        })();
+    </script>
+
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript">
+  (function($){
+    $('.fancybox').fancybox({
+      'titlePosition': 'inside'
+    });
+  })(jQuery);
+  </script>
+
+
+
+    
+    <script type="text/javascript">
+      var duoshuoQuery = {short_name:"ijack"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.src = 'http://static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0] 
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+<script type="text/javascript">
+  
+  $(function(){
+
+    $('.title').hover(
+      function() {      
+        $(this).stop().animate(
+          {'marginLeft': '10px'}, 200
+        );   
+      }, 
+      function() {       
+        $(this).stop().animate({'marginLeft': '0px'}, 200);      
+      
+    });   
+
+  });
+
+</script>
+
+
+
+</body>
+</html>

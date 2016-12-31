@@ -1,0 +1,323 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>关于iOS9的APP瘦身 | Jack Alan</title>
+  <meta name="author" content="Jack Alan">
+  
+  <meta name="description" content="本文翻译自Gregg Mojica发布在AppCode上的文章Working with App Thinning in iOS 9，文章版权由AppCoda授给SwiftGG翻译组。翻译者为博主JackAlan
+
+iOS9仅在推出后的几周后，在iOS设备上的安装量就超过了一半。这使它获得有史以来最快">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="关于iOS9的APP瘦身"/>
+  <meta property="og:site_name" content="Jack Alan"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.ico" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jack Alan" type="application/atom+xml">
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+<link rel="stylesheet" href="/css/style.css">
+  <script src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+
+<body>
+  <header id="header" class='normal_mode'>
+    <nav id="main-nav">
+  <ul class='container'>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+      <li><a href="/Books&Courses">Books &amp; Courses</a></li>
+    
+      <li><a href="/Links">Friends</a></li>
+    
+      <li><a href="/AboutMe">About</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+  </header>
+  <div id="content" class="container">
+    <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+      <time datetime="2015-12-29T04:06:41.000Z"><a href="/2015/12/28/关于iOS9的APP瘦身/">Mon, Dec 28 2015, 11:06:41 pm</a></time>
+
+  
+    <h1 class="title">关于iOS9的APP瘦身</h1>
+  
+
+
+
+  
+  <div class="tags">
+  	<i class="fa fa-tag"></i>
+    <a href="/tags/iOS/">iOS</a>, <a href="/tags/翻译/">翻译</a>, <a href="/tags/iOS9/">iOS9</a>
+  </div>
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <hr>
+<blockquote>
+<p>本文翻译自Gregg Mojica发布在<a href="http://www.appcoda.com/" target="_blank" rel="external">AppCode</a>上的文章<a href="http://www.appcoda.com/app-thinning/" target="_blank" rel="external">Working with App Thinning in iOS 9</a>，文章版权由AppCoda授给SwiftGG翻译组。翻译者为博主<a href="http://iJack.pw">JackAlan</a></p>
+</blockquote>
+<p>iOS9仅在推出后的几周后，在iOS设备上的安装量就超过了一半。这使它获得有史以来最快的普及率，超过了iOS7在2013年的记录。</p>
+<p>在此教程中，我们将探索为什么App瘦身是重要的以及如何在自己的App中利用这个令人兴奋的新特性。</p>
+<p><img src="http://www.appcoda.com/wp-content/uploads/2015/09/app-thinning-1024x682.png" alt=""></p>
+<p>在本次WWDC中开放的APP瘦身是一个令人兴奋的新技术，将会改变整个下载的过程。就用户说流量消耗大，iOS设备内存限制以及更快速的下载而言，App瘦身是一个值得学习的至关重要的特性。</p>
+<h2 id="先决条件"><a href="#先决条件" class="headerlink" title="先决条件"></a>先决条件</h2><p>对于这篇教程，假定你有Xcode的工作知识，以及如何驾驭IDE。如果这对你来说很陌生，或者你根本不确定IDE是什么，你或许应该在看一下<a href="http://www.appcoda.com/ios-programming-course/" target="_blank" rel="external">excellent free course</a>.</p>
+<p>我也假定你已经理解如何去在AppStore上或者TestFlight(苹果beta版App测试服务)上发布App。我不会具体到讲述如何用TestFlight.</p>
+<p>让我们开始吧。</p>
+<h2 id="App瘦身简介"><a href="#App瘦身简介" class="headerlink" title="App瘦身简介"></a>App瘦身简介</h2><p><img src="http://www.appcoda.com/wp-content/uploads/2015/09/apple_app_slicing_illustration-516x300.jpg" alt=""></p>
+<p>因为当前市场上有着大量的iOS设备，以及多种屏幕尺寸和分辨率，让一个App在多种屏幕下看起来非常棒需要大量的资源(比如png, jpeg以及二进制的PDF)。不幸的是，这导致用户需要下载一个巨大的程序包(此前版本的iOS强制用户下载全部App文件，包括他们在用iPhone时永远也不会用到的适配iPad的图片)。16G的iPhone仍然是一个非常实际的存在(并且可能短时间内不会消失)，所以你要让App缩小体积并且可快速下载以保证用户有足够的空间并优化整体体验。App瘦身特性让这成为可能。</p>
+<p>现今，App不仅仅由代码和图片组成。当今的App不仅包括可执行代码而且还有32位，64位版本(优化各种架构比如arm64，arm7S和arm7)，3D图形技术(例如OpenGL，Metal等)，声音，其他文件。总之，当下App的水准到达了令人难以置信的复杂程度。这就是App瘦身需要拯救的地方。</p>
+<p>App瘦身会自动检测用户设备类型(比如型号名称)，并只为特定的设备下载相关内容。换句话来说，如果你使用iPad Mini 1(没有视网膜屏而是1X的分辨率)，然后只有1X的文件会被下载(仅在这此时)。更强大的清晰的资源(比如iPad Mini 3或4中的)将不提供下载。因为用户只需要下载他/她的特定设备的内容，这加速了下载过程，并节省了设备上的空间。</p>
+<p>虽然这起初可能听起来很复杂，我们将深入到具体的细节。Xcode和App Store处理这项工作的绝大部分。因此，本教程中不会有太多的代码，而是重点关注理解App瘦身的过程和技术使它成为现实。</p>
+<p>App瘦身有三个主要方面，应用程序切片(<code>App Slicing</code>) 中间代码(<code>Bitcode</code>)和按需加载资源(<code>On Demand Resources</code>)。在本教程中，我们将一一探索。</p>
+<p><img src="http://www.appcoda.com/wp-content/uploads/2015/09/13196-7761-150609-Developer-2-l-545x300.jpg" alt=""></p>
+<h2 id="应用程序切片-App-Slicing"><a href="#应用程序切片-App-Slicing" class="headerlink" title="应用程序切片(App Slicing)"></a>应用程序切片(App Slicing)</h2><p>App瘦身第一个我们要讨论的就是切片(slicing)。根据苹果的文档，</p>
+<blockquote>
+<p>切片是创建和提供不同的目标设备的应用程序包的变体(<code>variant</code>)的过程。 一个变体(<code>variant</code>)只包含可执行架构和目标设备所需要的资源。</p>
+</blockquote>
+<p>换句话来说，应用程序切片只提供给与每个设备相关的资源(取决于屏幕分辨率和架构等等)。事实上，应用程序切片处理了App瘦身进程的绝大多数。</p>
+<p>当你已经准备好提交App时，和此前一样，你上传了 .IPA 或者 .App文件到iTunes Connect(但是必须使用Xcode7因为它包含支持App瘦身的iOS9 SDK). 然后App Store将App进行切片，创建特定的变体(<code>variant</code>)，这些变体将被分发给每个设备，依据它的功能(<code>capabilities</code>).</p>
+<p><img src="http://www.appcoda.com/wp-content/uploads/2015/09/slicing.png" alt=""></p>
+<h2 id="按需加载资源-On-Demand-Resources"><a href="#按需加载资源-On-Demand-Resources" class="headerlink" title="按需加载资源(On Demand Resources)"></a>按需加载资源(On Demand Resources)</h2><p>为了完全理解App瘦身，很有必要去了解 按需加载资源(<code>ODR</code>). 按需所加载的资源就是在App初次安装后可以被下载的文件。例如，特定关卡的游戏(和这些关卡相关的内容) 只有在玩家解锁它们的时候才可以被下载。此外，在设定的时间内，玩家没有进行的早期的关卡可以被移除，以节省设备的存储空间。</p>
+<p>在Xcode的设置中(在Build Setting下)，开启按需加载资源需要更改”Enable On Demand Resources” 这个布尔值为”YES”.</p>
+<p><img src="http://www.appcoda.com/wp-content/uploads/2015/09/Screen-Shot-2015-09-28-at-3.53.20-PM.png" alt=""></p>
+<h2 id="中间代码-Bitcode"><a href="#中间代码-Bitcode" class="headerlink" title="中间代码(Bitcode)"></a>中间代码(Bitcode)</h2><p>App瘦身的最后一个也是第三个方面就是中间代码。中间代码有点抽象，但在本质上，它是在App被下载前，苹果优化它的新途径。中间代码使得App可以在任何设备上运行的尽可能的快速和高效。中间代码可以为最近的编译器自动编译App，并且对特定的架构做优化。(例如 arm64 64位处理器 如iPhone6s和iPad Air 2)</p>
+<p>中间代码使得下载变得更小，通过排除被用于不同架构的优化而非仅仅下载相关的优化。</p>
+<p>对于iOS，中间代码是一种新的特性，并且对于新的工程来说它需要被手动开启。这个过程可以被完成通过在Build Setting下的工程设置并且选择Enable bitcode为YES.</p>
+<p><img src="http://www.appcoda.com/wp-content/uploads/2015/09/Screen-Shot-2015-09-28-at-3.50.06-PM.png" alt=""></p>
+<h2 id="在你的项目进行App瘦身"><a href="#在你的项目进行App瘦身" class="headerlink" title="在你的项目进行App瘦身"></a>在你的项目进行App瘦身</h2><p>尽管Xcode和App Store 处理了App瘦身的绝大多数流程，你仍然需要采取一定的预防措施以确保你的App使用了这种新的技术。首要的，你必须使用资源目录(<code>asset catalogs</code>).在这一点上，大多数的App默认使用资源目录(<code>asset catalogs</code>).如果你还没有用采用资源目录(<code>asset catalogs</code>)，你现有的大部分内容可以被转移到一个目录下通过按下在Xcode的项目设置下的”Use Asset Catalog”按钮，如下所示。</p>
+<p><img src="http://www.appcoda.com/wp-content/uploads/2015/09/Screen-Shot-2015-09-28-at-7.59.13-PM1.png" alt=""></p>
+<p>Xcode的新特性之一就是<code>Sprite Atlases</code>. Sprite Atlases基本上是资源目录和SpriteKit的组合(Xcode创建2D游戏的技术)。同样的，如果你是用SpriteKit，App瘦身那是必须的。</p>
+<h2 id="测试App瘦身"><a href="#测试App瘦身" class="headerlink" title="测试App瘦身"></a>测试App瘦身</h2><p>正如你在如上的组图中看到的，Xcode和苹果的App Store处理了绝大多数App瘦身的过程，这使得在你自己的App中采用这个技术变得相对容易。但是如果你想测试你的App并且确保它已经应用了App瘦身呢？幸运的是苹果的TestFlight提供了完美的解决方案。除App Store的应用瘦身技术外，TestFlight的用户也可以体验这个新特性。</p>
+<p>在本篇教程的第二部分，我们将会探索如何在TestFlight中使用App瘦身。</p>
+<p>首先，下载这个<a href="https://github.com/AlanMelody/AppThinning" target="_blank" rel="external">基本空白的项目</a>，解压，并且在Xcode中运行，你将会注意到这个项目基本没有什么除了在资源目录(<code>asset catalogs</code>)中的一系列的图片(以及少量的代码)。这个资源目录(<code>asset catalogs</code>) 也包含 1x, 2x 和 3x版本的app图标。</p>
+<p><img src="http://www.appcoda.com/wp-content/uploads/2015/09/Screen-Shot-2015-09-28-at-9.00.47-PM-1024x239.png" alt=""></p>
+<p>首先，在模拟器或者真机上运行这个App. 打开设置应用，点击<code>存储空间和iCloud使用</code>这一项(或者是<code>存储空间</code>这一项在非iOS9的设备上) 并且选择管理存储空间.向下滑动到我们刚刚编译好的App并且点击它。你想会注意到它大概有17.0MB的大小(这个大小可能略有不同，当上传至iTunes Connect时)。</p>
+<p><img src="http://www.appcoda.com/wp-content/uploads/2015/09/IMG_0106-2.png" alt=""></p>
+<p>当你使用Xcode构建并运行一个App时，Xcode并不会自动的处理App变体(<code>variant</code>)和App瘦身。这样，整个App的文件都在你的设备上。</p>
+<p>下一步，从Xcode中单击<code>Product</code>标签，并且选择<code>Archive</code>.</p>
+<p><img src="http://www.appcoda.com/wp-content/uploads/2015/09/Screen-Shot-2015-09-28-at-8.36.26-PM-1024x345.png" alt=""></p>
+<blockquote>
+<p>注意，你可能首先需要修改这个App的<code>Bundle Identifier</code>以匹配一个你自己创建的标识符。否则，这个App将不会被上传到iTunes Connect.</p>
+</blockquote>
+<p><img src="http://www.appcoda.com/wp-content/uploads/2015/09/appthinnning-1024x390.png" alt=""></p>
+<p>确保你在点击”Submit”前，选择了”Include bitcode”。如果一切顺利的话，你将会看到一个绿色对号通知你这次构建已经被上传。</p>
+<p><img src="http://www.appcoda.com/wp-content/uploads/2015/09/iTunes-Connect-App-Thinning-1024x483.png" alt=""></p>
+<p><img src="http://www.appcoda.com/wp-content/uploads/2015/09/Untitled.png" alt=""></p>
+<p>安装后注意到这个App现在接近5.4MB. 这就是App瘦身的意义。</p>
+<p><img src="http://www.appcoda.com/wp-content/uploads/2015/09/IMG_0108.png" alt=""></p>
+<p>哇哦！你刚刚从你的App中剔除掉了12.4MB - 并且这是一个非常基础的App. 那些包含多种不同的资源(<code>asset</code>)的App将会在App大小方面看到更急剧的变化喔~</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>在本篇教程，我们看了看App瘦身的强大。如此一来，我们讨论了App瘦身的三个主要的方面：应用程序切片(<code>App Slicing</code>) 中间代码(<code>Bitcode</code>)和按需加载资源(<code>On Demand Resources</code>).</p>
+<p>十月份的时候苹果当时说，iOS9.0和9.0.1 不会支持App切片，原因是由于一个问题影响iCloud创建自iOS9的备份，其中一些AppStore中的App将会只还原到同样型号的iOS设备。</p>
+<p>不过现在都9.2啦，没有这个鬼畜的问题了。</p>
+<p>总之，App瘦身特性将会加速App的下载和App的空间占用~</p>
+
+      
+    </div>
+    <footer>
+      
+          
+<!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+  <span class="jiathis_txt">分享到：</span>
+  <a class="jiathis_button_weixin">微信</a>
+  <a class="jiathis_button_tsina">新浪微博</a>
+  <a class="jiathis_button_renren">人人网</a>
+  <a class="jiathis_button_qzone">QQ空间</a>
+  <a class="jiathis_button_douban">豆瓣</a>
+  <a class="jiathis_button_pocket">Pocket</a>
+  <a href="http://www.jiathis.com/share?uid=901656" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank">更多</a>
+  <a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript" src="http://v3.jiathis.com/code_mini/jia.js?uid=901656" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+          <div class="clearfix"></div>
+          <nav id="pagination">
+  
+    <a href="/2015/12/29/浅谈iOS中的内存管理一/" class="alignleft prev"><i class="fa fa-long-arrow-left">上一页</i></a>
+  
+  
+    <a href="/2015/12/28/使用闭包初始化来加速 Swift 的 Playground/" class="alignright next">下一页<i class="fa fa-long-arrow-right"></i></a>
+  
+  <div class="clearfix"></div>
+</nav>
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">Kommentare</h1>
+
+  
+      <!-- Duoshuo Comment BEGIN -->
+<div class="ds-thread" data-thread-key="/2015/12/28/关于iOS9的APP瘦身/"></div>
+<!-- Duoshuo Comment END -->
+  
+</section>
+
+
+
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div>
+  
+  &copy; 2016 Jack Alan
+  
+</div>
+Powered by <a href="http://iJack.pw/" title="Jack Alan" target="_blank" rel="external">Jack Alan</a> and <a href="http://pages.github.com/" title="GitHub Pages" target="_blank" rel="external">GitHub Pages</a>
+
+<div class="clearfix"></div>
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3Ffe3ef7effe40ca4903cec1453f5c809f' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+ What ?
+<script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1254084718'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s95.cnzz.com/z_stat.php%3Fid%3D1254084718%26show%3Dpic' type='text/javascript'%3E%3C/script%3E"));</script>
+<OBJECT style="border: 0px" type="text/x-scriptlet" data="" width=0 Height=0 ></OBJECT>
+ </footer>
+  
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
+
+
+
+
+    <script type="text/javascript">
+        (function(){
+
+            $(window).scroll(function(){
+
+                var scrollTop = $(window).scrollTop();
+                if ( scrollTop >200 ){
+                    $("#main-nav").removeClass('normal_mode').addClass('top_mode');
+                } else{
+                    $("#main-nav").removeClass('top_mode').addClass('normal_mode');
+                }
+
+            });
+
+        })();
+    </script>
+
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript">
+  (function($){
+    $('.fancybox').fancybox({
+      'titlePosition': 'inside'
+    });
+  })(jQuery);
+  </script>
+
+
+
+    
+    <script type="text/javascript">
+      var duoshuoQuery = {short_name:"ijack"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.src = 'http://static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0] 
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+<script type="text/javascript">
+  
+  $(function(){
+
+    $('.title').hover(
+      function() {      
+        $(this).stop().animate(
+          {'marginLeft': '10px'}, 200
+        );   
+      }, 
+      function() {       
+        $(this).stop().animate({'marginLeft': '0px'}, 200);      
+      
+    });   
+
+  });
+
+</script>
+
+
+
+</body>
+</html>

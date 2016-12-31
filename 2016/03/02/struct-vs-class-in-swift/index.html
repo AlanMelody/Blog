@@ -1,0 +1,305 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Swift中的结构体与类 | Jack Alan</title>
+  <meta name="author" content="Jack Alan">
+  
+  <meta name="description" content="在学C++时，老师经常会问的一个问题就是：类和结构体有什么区别啊？
+在学操作系统之前，这两者似乎除了一些默认权限上的不同也没有什么太明显的区别。
+今天我们来聊聊在Swift中的结构体和类，Swift中的类和结构体的运用有着明显的区别，通过一番探赜，体会到了为什么Swift是一门更安全的语言。
+(如下">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="Swift中的结构体与类"/>
+  <meta property="og:site_name" content="Jack Alan"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.ico" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jack Alan" type="application/atom+xml">
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+<link rel="stylesheet" href="/css/style.css">
+  <script src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+
+<body>
+  <header id="header" class='normal_mode'>
+    <nav id="main-nav">
+  <ul class='container'>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+      <li><a href="/Books&Courses">Books &amp; Courses</a></li>
+    
+      <li><a href="/Links">Friends</a></li>
+    
+      <li><a href="/AboutMe">About</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+  </header>
+  <div id="content" class="container">
+    <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+      <time datetime="2016-03-02T22:04:26.000Z"><a href="/2016/03/02/struct-vs-class-in-swift/">Wed, Mar 2 2016, 5:04:26 pm</a></time>
+
+  
+    <h1 class="title">Swift中的结构体与类</h1>
+  
+
+
+
+  
+  <div class="tags">
+  	<i class="fa fa-tag"></i>
+    <a href="/tags/iOS/">iOS</a>, <a href="/tags/Swift/">Swift</a>
+  </div>
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <hr>
+<p>在学C++时，老师经常会问的一个问题就是：类和结构体有什么区别啊？</p>
+<p>在学操作系统之前，这两者似乎除了一些默认权限上的不同也没有什么太明显的区别。</p>
+<p>今天我们来聊聊在Swift中的结构体和类，Swift中的类和结构体的运用有着明显的区别，通过一番探赜，体会到了为什么Swift是一门更安全的语言。</p>
+<p>(如下的讨论只针对Swift中的类和结构体，其他语言中不一定完全适用。)</p>
+<h3 id="共性与不同"><a href="#共性与不同" class="headerlink" title="共性与不同"></a>共性与不同</h3><p>结构体和类有很多共性，在C语言中之所以也可以使用面向对象的编程思想就是因为结构体和函数指针的存在。在Swift中它们之间有如下共性：</p>
+<ul>
+<li>都可以定义属性用于存储值</li>
+<li>都可以使用下标来提供值访问</li>
+<li>都可以定义方法</li>
+<li>都可以定义构造器</li>
+<li>都可以写extension</li>
+<li>都可以实现协议</li>
+</ul>
+<p>不过，似乎类的功能更多一些，比如</p>
+<ul>
+<li>类可以使用继承</li>
+<li>引用计数允许一个类的多次引用</li>
+<li>类的实例可以释放其分配的资源</li>
+<li>类的实例可以在运行时得知其类型</li>
+</ul>
+<p>在OC中，<code>NSString</code>，<code>NSArray</code>和<code>NSDictionary</code>类型都是类类型，而Swift中的<code>String</code>，<code>Array</code>和<code>Dictionary</code>都是结构体。</p>
+<p>一般来说结构体和枚举都是值类型，而类是引用类型。也就是说，在OC中诸如<code>NSString</code>这些类型作为参数被传入时不会发生值拷贝,而是传递现有实例的引用，而在Swift中它们的值会被拷贝。当然Swift的文档中也提到了：Swift在幕后只在绝对必要的情况下才会做出值拷贝。Swift 会管理所有的值拷贝以确保性能最优化,所以没必要回避赋值以保证性能最优化。</p>
+<p>可能你会问，为什么要这么做？参考了一下<a href="http://stackoverflow.com/questions/29589007/what-are-the-benefits-of-an-immutable-struct-over-a-mutable-one" target="_blank" rel="external">stackoverflow</a>里面的讨论。由于struct是值类型，所以有着不可变的特性。而 Swift 恰恰追求的是线程安全，不可变性极大的有助于线程安全。这也是Swift在方便性与安全性上的一种妥协。</p>
+<p>所以，至此也不难理解为什么<a href="https://swift.org/about/" target="_blank" rel="external">Swift官网</a>中关于Swift Feature的描述中第一条就是<strong>Safe</strong>。简单的来说就是：一时的方便可能会为今后的维护留下隐患。</p>
+<h3 id="用途"><a href="#用途" class="headerlink" title="用途"></a>用途</h3><p>结构体实例总是通过值传递，类实例总是通过引用传递。这意味两者适用不同的任务。所以如何选择就成为了一个问题。参考了Apple官方的文档以及他人的资料，总结如下：</p>
+<p>当符合一条或多条以下条件时，建议使用结构体：</p>
+<ul>
+<li>该数据结构用来封装少量简单的数据值。</li>
+<li>该数据结构的实例在被传递时，明确的需要使用值传递。</li>
+<li>该数据结构中所存储的值类型属性也应该被拷贝而不是引用传递时。</li>
+<li>该数据结构不需要继承另一个已有类型的属性。</li>
+</ul>
+<p>举例来说，以下情况适合使用结构体：</p>
+<ul>
+<li>几何形状，封装<code>width</code> <code>height</code>属性。</li>
+<li>三位坐标系内的一点，封装<code>x</code> <code>y</code> <code>z</code>属性。</li>
+</ul>
+<p>除此外，大多数情况下自定义的数据结构的构造都应该是类。</p>
+
+      
+    </div>
+    <footer>
+      
+          
+<!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+  <span class="jiathis_txt">分享到：</span>
+  <a class="jiathis_button_weixin">微信</a>
+  <a class="jiathis_button_tsina">新浪微博</a>
+  <a class="jiathis_button_renren">人人网</a>
+  <a class="jiathis_button_qzone">QQ空间</a>
+  <a class="jiathis_button_douban">豆瓣</a>
+  <a class="jiathis_button_pocket">Pocket</a>
+  <a href="http://www.jiathis.com/share?uid=901656" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank">更多</a>
+  <a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript" src="http://v3.jiathis.com/code_mini/jia.js?uid=901656" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+          <div class="clearfix"></div>
+          <nav id="pagination">
+  
+    <a href="/2016/03/02/ARC-in-Swift/" class="alignleft prev"><i class="fa fa-long-arrow-left">上一页</i></a>
+  
+  
+    <a href="/2016/03/01/Swift中的逃逸闭包与自动闭包/" class="alignright next">下一页<i class="fa fa-long-arrow-right"></i></a>
+  
+  <div class="clearfix"></div>
+</nav>
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">Kommentare</h1>
+
+  
+      <!-- Duoshuo Comment BEGIN -->
+<div class="ds-thread" data-thread-key="/2016/03/02/struct-vs-class-in-swift/"></div>
+<!-- Duoshuo Comment END -->
+  
+</section>
+
+
+
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div>
+  
+  &copy; 2016 Jack Alan
+  
+</div>
+Powered by <a href="http://iJack.pw/" title="Jack Alan" target="_blank" rel="external">Jack Alan</a> and <a href="http://pages.github.com/" title="GitHub Pages" target="_blank" rel="external">GitHub Pages</a>
+
+<div class="clearfix"></div>
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3Ffe3ef7effe40ca4903cec1453f5c809f' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+ What ?
+<script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1254084718'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s95.cnzz.com/z_stat.php%3Fid%3D1254084718%26show%3Dpic' type='text/javascript'%3E%3C/script%3E"));</script>
+<OBJECT style="border: 0px" type="text/x-scriptlet" data="" width=0 Height=0 ></OBJECT>
+ </footer>
+  
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
+
+
+
+
+    <script type="text/javascript">
+        (function(){
+
+            $(window).scroll(function(){
+
+                var scrollTop = $(window).scrollTop();
+                if ( scrollTop >200 ){
+                    $("#main-nav").removeClass('normal_mode').addClass('top_mode');
+                } else{
+                    $("#main-nav").removeClass('top_mode').addClass('normal_mode');
+                }
+
+            });
+
+        })();
+    </script>
+
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript">
+  (function($){
+    $('.fancybox').fancybox({
+      'titlePosition': 'inside'
+    });
+  })(jQuery);
+  </script>
+
+
+
+    
+    <script type="text/javascript">
+      var duoshuoQuery = {short_name:"ijack"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.src = 'http://static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0] 
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+<script type="text/javascript">
+  
+  $(function(){
+
+    $('.title').hover(
+      function() {      
+        $(this).stop().animate(
+          {'marginLeft': '10px'}, 200
+        );   
+      }, 
+      function() {       
+        $(this).stop().animate({'marginLeft': '0px'}, 200);      
+      
+    });   
+
+  });
+
+</script>
+
+
+
+</body>
+</html>

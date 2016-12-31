@@ -1,0 +1,315 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>浅谈iOS中的内存管理(一) | Jack Alan</title>
+  <meta name="author" content="Jack Alan">
+  
+  <meta name="description" content="本系列文章主要目的是我个人对iOS中内存管理的一些见解与思考，参考了一部分资料，时间有限，此处就不一一列出了，主要参考为GNUStep、OC的Runtime、苹果的官方文档、以及KS&amp;amp;TF等大牛的博客。
+上古时代，iOS的程序还是手工管理内存的。大概在iOS5后 OC采用了ARC机制，让编译">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="浅谈iOS中的内存管理(一)"/>
+  <meta property="og:site_name" content="Jack Alan"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.ico" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jack Alan" type="application/atom+xml">
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+<link rel="stylesheet" href="/css/style.css">
+  <script src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+
+<body>
+  <header id="header" class='normal_mode'>
+    <nav id="main-nav">
+  <ul class='container'>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+      <li><a href="/Books&Courses">Books &amp; Courses</a></li>
+    
+      <li><a href="/Links">Friends</a></li>
+    
+      <li><a href="/AboutMe">About</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+  </header>
+  <div id="content" class="container">
+    <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+      <time datetime="2015-12-30T01:50:38.000Z"><a href="/2015/12/29/浅谈iOS中的内存管理一/">Tue, Dec 29 2015, 8:50:38 pm</a></time>
+
+  
+    <h1 class="title">浅谈iOS中的内存管理(一)</h1>
+  
+
+
+
+  
+  <div class="tags">
+  	<i class="fa fa-tag"></i>
+    <a href="/tags/iOS/">iOS</a>, <a href="/tags/内存管理/">内存管理</a>
+  </div>
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <hr>
+<p>本系列文章主要目的是我个人对iOS中内存管理的一些见解与思考，参考了一部分资料，时间有限，此处就不一一列出了，主要参考为GNUStep、OC的Runtime、苹果的官方文档、以及KS&amp;TF等大牛的博客。</p>
+<p>上古时代，iOS的程序还是手工管理内存的。大概在iOS5后 OC采用了ARC机制，让编译器来进行内存管理，降低memory leak 和 crash的风险，极大的解放了程序员。</p>
+<p>在讲述ARC前，先用MRC讲一下引用计数的原理，然后再看看ARC下，编译器帮我们做了什么。</p>
+<h3 id="1-引用计数的原理"><a href="#1-引用计数的原理" class="headerlink" title="1.引用计数的原理"></a>1.引用计数的原理</h3><p>这里将OC中的对象操作以及其在OC中对应的方法分成四个类别，在这四个类别基础上产生了四个黄金法则，如下将一一介绍。</p>
+<h3 id="1-1-对象操作的四个类别"><a href="#1-1-对象操作的四个类别" class="headerlink" title="1.1 对象操作的四个类别"></a>1.1 对象操作的四个类别</h3><table>
+<thead>
+<tr>
+<th>对象操作</th>
+<th style="text-align:center">OC中对应的方法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>生成并持有对象</td>
+<td style="text-align:center">alloc/new/copy/mutableCopy等</td>
+</tr>
+<tr>
+<td>持有对象</td>
+<td style="text-align:center">retain</td>
+</tr>
+<tr>
+<td>释放对象</td>
+<td style="text-align:center">release</td>
+</tr>
+<tr>
+<td>废弃对象</td>
+<td style="text-align:center">dealloc</td>
+</tr>
+</tbody>
+</table>
+<p><strong>注意：</strong>这些对象操作的方法其实并不包括在OC中，而是包含在Cocoa框架下的Foundation框架中。</p>
+<h3 id="1-2-四个黄金法则"><a href="#1-2-四个黄金法则" class="headerlink" title="1.2 四个黄金法则"></a>1.2 四个黄金法则</h3><ul>
+<li>自己生成的对象，自己持有。</li>
+<li>非自己生成的对象，自己也能持有。</li>
+<li>不在需要自己持有的对象的时候，释放。</li>
+<li>非自己持有的对象无法释放。</li>
+</ul>
+<p>如下是四个黄金法则对应的代码示例：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/*</span></div><div class="line"> * 自己生成并持有该对象</div><div class="line"> */</div><div class="line"> <span class="keyword">id</span> obj0 = [[<span class="built_in">NSObeject</span> alloc] init];</div><div class="line"> <span class="keyword">id</span> obj1 = [<span class="built_in">NSObeject</span> new];</div></pre></td></tr></table></figure>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/*</span></div><div class="line"> * 持有非自己生成的对象</div><div class="line"> */</div><div class="line"><span class="keyword">id</span> obj = [<span class="built_in">NSArray</span> array]; <span class="comment">// 非自己生成的对象，且该对象存在，但自己不持有</span></div><div class="line">[obj <span class="keyword">retain</span>]; <span class="comment">// 自己持有对象</span></div></pre></td></tr></table></figure>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/*</span></div><div class="line"> * 不在需要自己持有的对象的时候，释放</div><div class="line"> */</div><div class="line"><span class="keyword">id</span> obj = [[<span class="built_in">NSObeject</span> alloc] init]; <span class="comment">// 此时持有对象</span></div><div class="line">[obj release]; <span class="comment">// 释放对象</span></div><div class="line"><span class="comment">/*</span></div><div class="line"> * 指向对象的指针仍就被保留在obj这个变量中</div><div class="line"> * 但对象已经释放，不可访问</div><div class="line"> */</div></pre></td></tr></table></figure>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/*</span></div><div class="line"> * 非自己持有的对象无法释放</div><div class="line"> */</div><div class="line"><span class="keyword">id</span> obj = [<span class="built_in">NSArray</span> array]; <span class="comment">// 非自己生成的对象，且该对象存在，但自己不持有</span></div><div class="line">[obj release]; <span class="comment">// 此时将运行时crash 或编译器报error</span></div></pre></td></tr></table></figure>
+<p>此时，我相信你跟我一样，一定很好奇，类似 <code>[NSArray array]</code>这个方法实现的<strong>非自己生成的对象，且该对象存在，但自己不持有</strong> 这个特性是怎么实现的？</p>
+<p>其实这里使用的是一个<code>autorelease</code>方法，这里我来构造一个建议的方法来实现这个思想，代码如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">- (<span class="keyword">id</span>) getAObjNotRetain &#123;</div><div class="line">    <span class="keyword">id</span> obj = [[<span class="built_in">NSObject</span> alloc] init]; <span class="comment">// 自己持有对象</span></div><div class="line">    [obj autorelease]; <span class="comment">// 取得的对象存在，但自己不持有该对象</span></div><div class="line">    <span class="keyword">return</span> obj;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>autorelease</code> 使得对象在超出生命周期后能正确的被释放(通过调用release方法)。</p>
+<p>那<code>autorelease</code>和<code>release</code>有什么区别呢？ 此后会剖析其具体实现方式，这里仅进行简单说明：</p>
+<p>在调用<code>release</code>后，对象会被立即释放，而调用<code>autorelease</code>后，对象不会被立即释放，而是注册到<code>autoreleasepool</code>中，经过一段时间后pool结束，此时调用<code>release</code>方法，对象被释放。</p>
+<p><strong>注意：</strong> autorelease绝不等同于Java中的垃圾收集器，此后分析实现代码后便会了解具体原因。</p>
+<p>下一篇文章将会讲解关于 alloc/retain/release/dealloc 的实现 以方便了解最终的ARC的实现。</p>
+
+      
+    </div>
+    <footer>
+      
+          
+<!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+  <span class="jiathis_txt">分享到：</span>
+  <a class="jiathis_button_weixin">微信</a>
+  <a class="jiathis_button_tsina">新浪微博</a>
+  <a class="jiathis_button_renren">人人网</a>
+  <a class="jiathis_button_qzone">QQ空间</a>
+  <a class="jiathis_button_douban">豆瓣</a>
+  <a class="jiathis_button_pocket">Pocket</a>
+  <a href="http://www.jiathis.com/share?uid=901656" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank">更多</a>
+  <a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript" src="http://v3.jiathis.com/code_mini/jia.js?uid=901656" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+          <div class="clearfix"></div>
+          <nav id="pagination">
+  
+    <a href="/2015/12/29/浅谈iOS中的内存管理二/" class="alignleft prev"><i class="fa fa-long-arrow-left">上一页</i></a>
+  
+  
+    <a href="/2015/12/28/关于iOS9的APP瘦身/" class="alignright next">下一页<i class="fa fa-long-arrow-right"></i></a>
+  
+  <div class="clearfix"></div>
+</nav>
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">Kommentare</h1>
+
+  
+      <!-- Duoshuo Comment BEGIN -->
+<div class="ds-thread" data-thread-key="/2015/12/29/浅谈iOS中的内存管理一/"></div>
+<!-- Duoshuo Comment END -->
+  
+</section>
+
+
+
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div>
+  
+  &copy; 2016 Jack Alan
+  
+</div>
+Powered by <a href="http://iJack.pw/" title="Jack Alan" target="_blank" rel="external">Jack Alan</a> and <a href="http://pages.github.com/" title="GitHub Pages" target="_blank" rel="external">GitHub Pages</a>
+
+<div class="clearfix"></div>
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3Ffe3ef7effe40ca4903cec1453f5c809f' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+ What ?
+<script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1254084718'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s95.cnzz.com/z_stat.php%3Fid%3D1254084718%26show%3Dpic' type='text/javascript'%3E%3C/script%3E"));</script>
+<OBJECT style="border: 0px" type="text/x-scriptlet" data="" width=0 Height=0 ></OBJECT>
+ </footer>
+  
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
+
+
+
+
+    <script type="text/javascript">
+        (function(){
+
+            $(window).scroll(function(){
+
+                var scrollTop = $(window).scrollTop();
+                if ( scrollTop >200 ){
+                    $("#main-nav").removeClass('normal_mode').addClass('top_mode');
+                } else{
+                    $("#main-nav").removeClass('top_mode').addClass('normal_mode');
+                }
+
+            });
+
+        })();
+    </script>
+
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript">
+  (function($){
+    $('.fancybox').fancybox({
+      'titlePosition': 'inside'
+    });
+  })(jQuery);
+  </script>
+
+
+
+    
+    <script type="text/javascript">
+      var duoshuoQuery = {short_name:"ijack"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.src = 'http://static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0] 
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+<script type="text/javascript">
+  
+  $(function(){
+
+    $('.title').hover(
+      function() {      
+        $(this).stop().animate(
+          {'marginLeft': '10px'}, 200
+        );   
+      }, 
+      function() {       
+        $(this).stop().animate({'marginLeft': '0px'}, 200);      
+      
+    });   
+
+  });
+
+</script>
+
+
+
+</body>
+</html>

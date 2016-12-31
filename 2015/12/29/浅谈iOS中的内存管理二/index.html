@@ -1,0 +1,346 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>浅谈iOS中的内存管理(二) | Jack Alan</title>
+  <meta name="author" content="Jack Alan">
+  
+  <meta name="description" content="紧接上一篇的内容，这里将会剖析 alloc/retain/release/dealloc/autorelease 的实现，我们采用GNUstep。GNUstep是一套Cocoa框架的互换开源框架，当然和苹果自身的实现方式肯定有所区别，但思想大同小异，区别主要出于不同应用条件下的不同实现方式，哪一种更">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="浅谈iOS中的内存管理(二)"/>
+  <meta property="og:site_name" content="Jack Alan"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.ico" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jack Alan" type="application/atom+xml">
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+<link rel="stylesheet" href="/css/style.css">
+  <script src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+
+<body>
+  <header id="header" class='normal_mode'>
+    <nav id="main-nav">
+  <ul class='container'>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+      <li><a href="/Books&Courses">Books &amp; Courses</a></li>
+    
+      <li><a href="/Links">Friends</a></li>
+    
+      <li><a href="/AboutMe">About</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+  </header>
+  <div id="content" class="container">
+    <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+      <time datetime="2015-12-30T03:41:19.000Z"><a href="/2015/12/29/浅谈iOS中的内存管理二/">Tue, Dec 29 2015, 10:41:19 pm</a></time>
+
+  
+    <h1 class="title">浅谈iOS中的内存管理(二)</h1>
+  
+
+
+
+  
+  <div class="tags">
+  	<i class="fa fa-tag"></i>
+    <a href="/tags/iOS/">iOS</a>, <a href="/tags/内存管理/">内存管理</a>
+  </div>
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <hr>
+<p>紧接上一篇的内容，这里将会剖析 alloc/retain/release/dealloc/autorelease 的实现，我们采用<a href="http://gnustep.org" target="_blank" rel="external">GNUstep</a>。GNUstep是一套Cocoa框架的互换开源框架，当然和苹果自身的实现方式肯定有所区别，但思想大同小异，区别主要出于不同应用条件下的不同实现方式，哪一种更合适去达到某些需求。这非常类似于操作系统中各种同类算法、实现方式的采用，这将会在本篇文章中有所涉及。</p>
+<p>但我个人经验还不足够，如有差错，恳请斧正，轻喷。</p>
+<h2 id="2-1-1-下载GNUstep"><a href="#2-1-1-下载GNUstep" class="headerlink" title="2.1.1 下载GNUstep"></a>2.1.1 下载GNUstep</h2><p>这里我们主要用到的是<code>GNUstep Core</code>，分为<code>GNUstep Make</code> <code>GNUstep Base</code> <code>GNUstep GUI</code> 和<code>GNUstep Backend</code> 四部分。<br>这里我们只用到<a href="http://ftpmain.gnustep.org/pub/gnustep/core/gnustep-base-1.24.8.tar.gz" target="_blank" rel="external">GNUstep Base</a> 这里主要是Foundation框架的实现。</p>
+<p><img src="http://7pulfv.com1.z0.glb.clouddn.com/GNUstepCatalog.png" alt=""></p>
+<p>直接用Xcode打开目录下的<code>base.xcodeproj</code>文件 就可以查看工程目录结构了。初步看一下目录结构，然后我们就开始吧。</p>
+<h2 id="2-1-2-命名规范"><a href="#2-1-2-命名规范" class="headerlink" title="2.1.2 命名规范"></a>2.1.2 命名规范</h2><p>根据Apple的命名规范，凡是以 <code>alloc</code>, <code>copy</code>, <code>mutableCopy</code> 和 <code>new</code>开头的方法都是返回自己生成的对象并持有，反之则不持有。</p>
+<h2 id="2-1-3-从alloc开始"><a href="#2-1-3-从alloc开始" class="headerlink" title="2.1.3 从alloc开始"></a>2.1.3 从alloc开始</h2><p>首先看最最最常见的<code>NSObject</code>这个类(当然这个工程的文件实在太多了，与其一个一个找不如用<code>cmd+shift+o</code>然后输入文件名直接定位，当然也可以输入方法名，这些快捷键在此后会经常用到)。</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">+ (<span class="keyword">id</span>) alloc</div><div class="line">&#123;</div><div class="line">  <span class="keyword">return</span> [<span class="keyword">self</span> allocWithZone: <span class="built_in">NSDefaultMallocZone</span>()];</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>alloc</code>方法会申请一个新的实例，方式是通过<code>allocWithZone</code>方法调用<code>NSDefaultMallocZone</code>分配对象空间，如下是源码。</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">+ (<span class="keyword">id</span>) allocWithZone: (<span class="built_in">NSZone</span>*)z</div><div class="line">&#123;</div><div class="line">  <span class="keyword">return</span> <span class="built_in">NSAllocateObject</span> (<span class="keyword">self</span>, <span class="number">0</span>, z);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>把视线转移到<code>NSAllocateObject</code>这个方法，</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">inline</span> <span class="keyword">id</span> <span class="built_in">NSAllocateObject</span> (Class aClass, <span class="built_in">NSUInteger</span> extraBytes, <span class="built_in">NSZone</span> *zone)</div><div class="line">&#123;</div><div class="line">  <span class="keyword">id</span>  new;</div><div class="line">  <span class="keyword">int</span>  size;</div><div class="line"></div><div class="line">  <span class="built_in">NSCAssert</span>((!class_isMetaClass(aClass)), <span class="string">@"Bad class for new object"</span>);</div><div class="line">  size = class_getInstanceSize(aClass) + extraBytes + <span class="keyword">sizeof</span>(<span class="keyword">struct</span> obj_layout);</div><div class="line">  <span class="keyword">if</span> (zone == <span class="number">0</span>)</div><div class="line">    &#123;</div><div class="line">      zone = <span class="built_in">NSDefaultMallocZone</span>();</div><div class="line">    &#125;</div><div class="line">  new = <span class="built_in">NSZoneMalloc</span>(zone, size);</div><div class="line">  <span class="keyword">if</span> (new != <span class="literal">nil</span>)</div><div class="line">    &#123;</div><div class="line">      memset (new, <span class="number">0</span>, size);</div><div class="line">      new = (<span class="keyword">id</span>)&amp;((obj)new)[<span class="number">1</span>];</div><div class="line">      object_setClass(new, aClass);</div><div class="line">      AADD(aClass, new);</div><div class="line">    &#125;</div><div class="line">  <span class="keyword">if</span> (<span class="number">0</span> == cxx_construct)</div><div class="line">    &#123;</div><div class="line">      cxx_construct = sel_registerName(<span class="string">".cxx_construct"</span>);</div><div class="line">      cxx_destruct = sel_registerName(<span class="string">".cxx_destruct"</span>);</div><div class="line">    &#125;</div><div class="line">  callCXXConstructors(aClass, new);</div><div class="line"></div><div class="line">  <span class="keyword">return</span> new;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>让我们来分析下这段代码，首先<code>size</code>变量用来计算容纳对象所需要的内存大小 其中有一个结构体<code>obj_layout</code>，如下是这个结构体的代码</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">struct</span> obj_layout &#123;</div><div class="line">    <span class="keyword">char</span>  padding[__BIGGEST_ALIGNMENT__ - ((UNP % __BIGGEST_ALIGNMENT__)</div><div class="line">      ? (UNP % __BIGGEST_ALIGNMENT__) : __BIGGEST_ALIGNMENT__)];</div><div class="line">    <span class="built_in">NSUInteger</span>  retained;</div><div class="line">&#125;;</div><div class="line"><span class="keyword">typedef</span>  <span class="keyword">struct</span> obj_layout *obj;</div></pre></td></tr></table></figure>
+<p><code>obj_layout</code>分两种，如上是一种，<code>obj_layout_unpadded</code>是另一种，后者去掉了<code>padding</code>这个变量。</p>
+<p>其实<code>padding</code>是一个用于填充的变量，主要用于结构体的对齐，这里暂时先不讨论结构体对齐相关的内容。</p>
+<p><code>obj_layout</code>中的<code>retained</code>用来保存引用计数，写入对象头部，在对象的内存块完成置零初始化后返回。</p>
+<p>回到<code>NSAllocateObject</code>方法，此后的过程可以描述为：<code>NSAllocateObject</code>通过调用<code>NSZoneMalloc</code>来分配存放对象所需要的内存空间，之后将该内存空间置零，最后把<code>new</code>指针返回。</p>
+<p>通过调用<code>retainCount</code>方法即可取得对象的引用计数，如下是其实现：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">- (<span class="built_in">NSUInteger</span>) retainCount</div><div class="line">&#123;</div><div class="line"><span class="meta">#if  GS_WITH_GC</span></div><div class="line">  <span class="keyword">return</span> <span class="built_in">UINT_MAX</span>;</div><div class="line"><span class="meta">#else</span></div><div class="line">  <span class="keyword">return</span> <span class="built_in">NSExtraRefCount</span>(<span class="keyword">self</span>) + <span class="number">1</span>;</div><div class="line"><span class="meta">#endif</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>可能的返回值有两条，其中一条是一个MAX值，这主要用来方便的表示一个对象永远不会被<code>dealloc</code>，将视线转移到第二条值，如下是<code>NSExtraRefCount</code>的实现：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">inline</span> <span class="built_in">NSUInteger</span></div><div class="line"><span class="built_in">NSExtraRefCount</span>(<span class="keyword">id</span> anObject)</div><div class="line">&#123;</div><div class="line"><span class="meta">#ifdef __OBJC_GC__</span></div><div class="line">  <span class="keyword">if</span> (objc_collecting_enabled())</div><div class="line">    &#123;</div><div class="line">      <span class="keyword">return</span> <span class="built_in">UINT_MAX</span><span class="number">-1</span>;</div><div class="line">    &#125;</div><div class="line"><span class="meta">#endif</span></div><div class="line"><span class="meta">#if  GS_WITH_GC</span></div><div class="line">  <span class="keyword">return</span> <span class="built_in">UINT_MAX</span> - <span class="number">1</span>;</div><div class="line"><span class="meta">#else</span></div><div class="line">  <span class="keyword">return</span> ((obj)anObject)[<span class="number">-1</span>].retained;</div><div class="line"><span class="meta">#endif </span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>整个流程可以被描述为：<code>NSExtraRefCount</code>方法由对象寻址找到对象内存头，访问其中的<code>retained</code>变量。其中的+1/-1操作只是概念上的区别。</p>
+<p>相信在这里你肯定和我一样很好奇，<code>NSDefaultMallocZone</code>和<code>NSZoneMalloc</code>的名字中包含的NSZone是什么呢？</p>
+<p>查阅了资料后，总结如下：</p>
+<p>NSZone是为了防止内存碎片化而引入的结构。对内存分配的区域进行分化管理，根据使用对象的目的、大小进行分配内存到不同的区域中，从而提高内存管理效率。</p>
+<p>其实在苹果的文档<a href="https://developer.apple.com/library/mac/releasenotes/ObjectiveC/RN-TransitioningToARC/Introduction/Introduction.html" target="_blank" rel="external">Transitioning to ARC Release Notes</a>中关于此处有提及</p>
+<blockquote>
+<p>You cannot use memory zones. There is no need to use NSZone any more—they are ignored by the modern Objective-C runtime anyway.</p>
+</blockquote>
+<p>总结起来一句话：在现代运行时操作系统中因为其内存管理本身已经极具效率，所以就忽略了<code>memory zone</code>的概念，如果使用它 反而会引起内存效率降低。</p>
+<p>这也许也是GNUstep和苹果实现方式的区别之一，深入的了解总是很有意思的，不是吗？</p>
+<p>下面三点用于描述引用计数值的变化：</p>
+<ul>
+<li>调用<code>alloc</code>/<code>retain</code>方法后，引用计数值+1</li>
+<li><code>release</code>后，引用计数-1</li>
+<li>引用计数值为0时，调用<code>dealloc</code>方法废弃对象</li>
+</ul>
+<h2 id="2-1-5-retain-release-dealloc"><a href="#2-1-5-retain-release-dealloc" class="headerlink" title="2.1.5 retain/release/dealloc"></a>2.1.5 retain/release/dealloc</h2><h3 id="retain"><a href="#retain" class="headerlink" title="retain"></a>retain</h3><p>与<code>alloc</code>方法不同的是，<code>retain/release/dealloc</code>这三个方法我们关注的是实例方法，而不是此前<code>alloc</code>的类方法(想一想为什么?)。</p>
+<p>但是这并不意味着这些方法不可以用作类方法，从源码中，我们可以看到<code>retain</code>方法就兼具类方法与实例方法，<code>retain</code>的类方法主要用于在NSArray这类容器中存储并持有对象。如下是<code>retain</code>的实例方法的实现：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">- (<span class="keyword">id</span>) <span class="keyword">retain</span></div><div class="line">&#123;</div><div class="line"><span class="meta">#if  (GS_WITH_GC == 0)</span></div><div class="line">  <span class="built_in">NSIncrementExtraRefCount</span>(<span class="keyword">self</span>);</div><div class="line"><span class="meta">#endif</span></div><div class="line">  <span class="keyword">return</span> <span class="keyword">self</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>忽略<code>GS_WITH_GC</code>整个讨厌的宏，默认的方式都是通过<code>NSIncrementExtraRefCount</code>实现。如下是<code>NSIncrementExtraRefCount</code>的实现：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">inline</span> <span class="keyword">void</span></div><div class="line"><span class="built_in">NSIncrementExtraRefCount</span>(<span class="keyword">id</span> anObject)</div><div class="line"><span class="meta">#endif</span></div><div class="line">&#123;</div><div class="line"><span class="meta">#if  GS_WITH_GC || __OBJC_GC__</span></div><div class="line">  <span class="keyword">return</span>;</div><div class="line"><span class="meta">#else</span></div><div class="line">  <span class="keyword">if</span> (allocationLock != <span class="number">0</span>)</div><div class="line">    &#123;</div><div class="line"><span class="meta">#if  defined(GSATOMICREAD)</span></div><div class="line">      <span class="keyword">if</span> (GSAtomicIncrement((gsatomic_t)&amp;(((obj)anObject)[<span class="number">-1</span>].retained))</div><div class="line">        &gt; <span class="number">0xfffffe</span>)</div><div class="line">  &#123;</div><div class="line">    [<span class="built_in">NSException</span> raise: <span class="built_in">NSInternalInconsistencyException</span></div><div class="line">      format: <span class="string">@"NSIncrementExtraRefCount() asked to increment too far"</span>];</div><div class="line">  &#125;</div><div class="line"><span class="meta">#else  </span></div><div class="line">      <span class="built_in">NSLock</span> *theLock = GSAllocationLockForObject(anObject);</div><div class="line"></div><div class="line">      [theLock lock];</div><div class="line">      <span class="keyword">if</span> (((obj)anObject)[<span class="number">-1</span>].retained == <span class="built_in">UINT_MAX</span> - <span class="number">1</span>)</div><div class="line">  &#123;</div><div class="line">    [theLock unlock];</div><div class="line">    [<span class="built_in">NSException</span> raise: <span class="built_in">NSInternalInconsistencyException</span></div><div class="line">      format: <span class="string">@"NSIncrementExtraRefCount() asked to increment too far"</span>];</div><div class="line">  &#125;</div><div class="line">      ((obj)anObject)[<span class="number">-1</span>].retained++;</div><div class="line">      [theLock unlock];</div><div class="line"><span class="meta">#endif  </span></div><div class="line">    &#125;</div><div class="line">  <span class="keyword">else</span></div><div class="line">    &#123;</div><div class="line">      <span class="keyword">if</span> (((obj)anObject)[<span class="number">-1</span>].retained == <span class="built_in">UINT_MAX</span> - <span class="number">1</span>)</div><div class="line">  &#123;</div><div class="line">    [<span class="built_in">NSException</span> raise: <span class="built_in">NSInternalInconsistencyException</span></div><div class="line">      format: <span class="string">@"NSIncrementExtraRefCount() asked to increment too far"</span>];</div><div class="line">  &#125;</div><div class="line">      ((obj)anObject)[<span class="number">-1</span>].retained++;</div><div class="line">    &#125;</div><div class="line"><span class="meta">#endif  </span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这里可以描述为，在<code>retained</code>变量未超出其最大限定值时，retained++，否则抛异常。</p>
+<h3 id="release"><a href="#release" class="headerlink" title="release"></a>release</h3><p>如下是<code>release</code>的实现：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">- (<span class="keyword">oneway</span> <span class="keyword">void</span>) release</div><div class="line">&#123;</div><div class="line"><span class="meta">#if  (GS_WITH_GC == 0)</span></div><div class="line">  <span class="keyword">if</span> (<span class="built_in">NSDecrementExtraRefCountWasZero</span>(<span class="keyword">self</span>))</div><div class="line">    &#123;</div><div class="line"><span class="meta">#  ifdef OBJC_CAP_ARC</span></div><div class="line">      objc_delete_weak_refs(<span class="keyword">self</span>);</div><div class="line"><span class="meta">#  endif</span></div><div class="line">      [<span class="keyword">self</span> dealloc];</div><div class="line">    &#125;</div><div class="line"><span class="meta">#endif</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这个过程可以被描述为：当retained变量为正时-1，等于0时调用<code>dealloc</code>方法。</p>
+<h3 id="dealloc"><a href="#dealloc" class="headerlink" title="dealloc"></a>dealloc</h3><p>如下是<code>dealloc</code>的实现：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line">- (<span class="keyword">void</span>) dealloc</div><div class="line">&#123;</div><div class="line">  <span class="built_in">NSDeallocateObject</span> (<span class="keyword">self</span>);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">inline</span> <span class="keyword">void</span></div><div class="line"><span class="built_in">NSDeallocateObject</span>(<span class="keyword">id</span> anObject)</div><div class="line">&#123;</div><div class="line">  Class aClass = object_getClass(anObject);</div><div class="line"></div><div class="line">  <span class="keyword">if</span> ((anObject != <span class="literal">nil</span>) &amp;&amp; !class_isMetaClass(aClass))</div><div class="line">    &#123;</div><div class="line">      obj  o = &amp;((obj)anObject)[<span class="number">-1</span>];</div><div class="line">      <span class="built_in">NSZone</span>  *z = <span class="built_in">NSZoneFromPointer</span>(o);</div><div class="line">      (*finalize_imp)(anObject, finalize_sel);</div><div class="line">      AREM(aClass, (<span class="keyword">id</span>)anObject);</div><div class="line">      <span class="keyword">if</span> (<span class="built_in">NSZombieEnabled</span> == <span class="literal">YES</span>)</div><div class="line">  &#123;</div><div class="line">    GSMakeZombie(anObject, aClass);</div><div class="line">    <span class="keyword">if</span> (<span class="built_in">NSDeallocateZombies</span> == <span class="literal">YES</span>)</div><div class="line">      &#123;</div><div class="line">        <span class="built_in">NSZoneFree</span>(z, o);</div><div class="line">      &#125;</div><div class="line">  &#125;</div><div class="line">      <span class="keyword">else</span></div><div class="line">  &#123;</div><div class="line">    object_setClass((<span class="keyword">id</span>)anObject, (Class)(<span class="keyword">void</span>*)<span class="number">0xdeadface</span>);</div><div class="line">    <span class="built_in">NSZoneFree</span>(z, o);</div><div class="line">  &#125;</div><div class="line">    &#125;</div><div class="line">  <span class="keyword">return</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>整个过程可以被描述为：废弃由<code>alloc</code>申请的内存块。</p>
+<h2 id="2-1-4-autorelease的原理与实现"><a href="#2-1-4-autorelease的原理与实现" class="headerlink" title="2.1.4 autorelease的原理与实现"></a>2.1.4 autorelease的原理与实现</h2><p>autorelease会在对象超出其生命周期时调用它的<code>-release</code>方法，使用方法如下：</p>
+<ul>
+<li>生成并持有<code>NSAutoreleasePool</code>对象</li>
+<li>调用已分配对象的<code>-autorelease</code>方法</li>
+<li>废弃<code>NSAutoreleasePool</code>对象</li>
+</ul>
+<p>一般由NSRunLoop实现对<code>NSAutoreleasePool</code>对象进行生成、持有和废弃的处理。</p>
+<p>实现如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line">- (<span class="keyword">id</span>) autorelease</div><div class="line">&#123;</div><div class="line"><span class="meta">#if  !GS_WITH_GC</span></div><div class="line">  <span class="keyword">if</span> (double_release_check_enabled)</div><div class="line">    &#123;</div><div class="line">      <span class="built_in">NSUInteger</span> release_count;</div><div class="line">      <span class="built_in">NSUInteger</span> retain_count = [<span class="keyword">self</span> retainCount];</div><div class="line">      release_count = [autorelease_class autoreleaseCountForObject:<span class="keyword">self</span>];</div><div class="line">      <span class="keyword">if</span> (release_count &gt; retain_count)</div><div class="line">        [<span class="built_in">NSException</span></div><div class="line">    raise: <span class="built_in">NSGenericException</span></div><div class="line">    format: <span class="string">@"Autorelease would release object too many times.\n"</span></div><div class="line">    <span class="string">@"%"</span>PRIuPTR<span class="string">" release(s) versus %"</span>PRIuPTR<span class="string">" retain(s)"</span>,</div><div class="line">    (<span class="keyword">unsigned</span> <span class="keyword">long</span>)release_count, (<span class="keyword">unsigned</span> <span class="keyword">long</span>)retain_count];</div><div class="line">    &#125;</div><div class="line"></div><div class="line">  (*autorelease_imp)(autorelease_class, autorelease_sel, <span class="keyword">self</span>);</div><div class="line"><span class="meta">#endif</span></div><div class="line">  <span class="keyword">return</span> <span class="keyword">self</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这里的实现比较复杂，很多变量或指针的定义都在<code>initialize</code>方法中，实现如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div></pre></td><td class="code"><pre><div class="line">+ (<span class="keyword">void</span>) initialize</div><div class="line">&#123;</div><div class="line">  <span class="keyword">if</span> (<span class="keyword">self</span> == [<span class="built_in">NSObject</span> <span class="keyword">class</span>])</div><div class="line">    &#123;</div><div class="line"><span class="meta">#if  GS_WITH_GC</span></div><div class="line">      GC_init();</div><div class="line">      GC_set_warn_proc(GSGarbageCollectorLog);</div><div class="line"><span class="meta">#endif</span></div><div class="line"></div><div class="line"><span class="meta">#ifdef __MINGW__</span></div><div class="line">      &#123;</div><div class="line">        <span class="keyword">extern</span> <span class="keyword">void</span> gnustep_base_socket_init(<span class="keyword">void</span>);</div><div class="line">        gnustep_base_socket_init();</div><div class="line">      &#125;</div><div class="line"><span class="meta">#else /* __MINGW__ */</span></div><div class="line"></div><div class="line"><span class="meta">#ifdef  SIGPIPE</span></div><div class="line">    <span class="comment">/*</span></div><div class="line">     * If SIGPIPE is not handled or ignored, we will abort on any attempt</div><div class="line">     * to write to a pipe/socket that has been closed by the other end!</div><div class="line">     * We therefore need to ignore the signal if nothing else is already</div><div class="line">     * handling it.</div><div class="line">     */</div><div class="line"><span class="meta">#ifdef  HAVE_SIGACTION</span></div><div class="line">      &#123;</div><div class="line">  <span class="keyword">struct</span> sigaction  act;</div><div class="line"></div><div class="line">  <span class="keyword">if</span> (sigaction(SIGPIPE, <span class="number">0</span>, &amp;act) == <span class="number">0</span>)</div><div class="line">    &#123;</div><div class="line">      <span class="keyword">if</span> (act.sa_handler == SIG_DFL)</div><div class="line">        &#123;</div><div class="line">    <span class="comment">// Not ignored or handled ... so we ignore it.</span></div><div class="line">    act.sa_handler = SIG_IGN;</div><div class="line">    <span class="keyword">if</span> (sigaction(SIGPIPE, &amp;act, <span class="number">0</span>) != <span class="number">0</span>)</div><div class="line">      &#123;</div><div class="line">        fprintf(stderr, <span class="string">"Unable to ignore SIGPIPE\n"</span>);</div><div class="line">      &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">  <span class="keyword">else</span></div><div class="line">    &#123;</div><div class="line">      fprintf(stderr, <span class="string">"Unable to retrieve information about SIGPIPE\n"</span>);</div><div class="line">    &#125;</div><div class="line">      &#125;</div><div class="line"><span class="meta">#else /* HAVE_SIGACTION */</span></div><div class="line">      &#123;</div><div class="line">  <span class="keyword">void</span>  (*handler)(<span class="built_in">NSInteger</span>);</div><div class="line"></div><div class="line">  handler = signal(SIGPIPE, SIG_IGN);</div><div class="line">  <span class="keyword">if</span> (handler != SIG_DFL)</div><div class="line">    &#123;</div><div class="line">      signal(SIGPIPE, handler);</div><div class="line">    &#125;</div><div class="line">      &#125;</div><div class="line"><span class="meta">#endif /* HAVE_SIGACTION */</span></div><div class="line"><span class="meta">#endif /* SIGPIPE */</span></div><div class="line"><span class="meta">#endif /* __MINGW__ */</span></div><div class="line"></div><div class="line">      finalize_sel = <span class="keyword">@selector</span>(finalize);</div><div class="line">      finalize_imp = class_getMethodImplementation(<span class="keyword">self</span>, finalize_sel);</div><div class="line"></div><div class="line"><span class="meta">#if defined(__FreeBSD__) &amp;&amp; defined(__i386__)</span></div><div class="line">      <span class="comment">// Manipulate the FPU to add the exception mask. (Fixes SIGFPE</span></div><div class="line">      <span class="comment">// problems on *BSD)</span></div><div class="line">      <span class="comment">// Note this only works on x86</span></div><div class="line"><span class="meta">#  if defined(FE_INVALID)</span></div><div class="line">      fedisableexcept(FE_INVALID);</div><div class="line"><span class="meta">#  else</span></div><div class="line">      &#123;</div><div class="line">        <span class="keyword">volatile</span> <span class="keyword">short</span> cw;</div><div class="line"></div><div class="line">        __asm__ <span class="keyword">volatile</span> (<span class="string">"fstcw (%0)"</span> : : <span class="string">"g"</span> (&amp;cw));</div><div class="line">        cw |= <span class="number">1</span>; <span class="comment">/* Mask 'invalid' exception */</span></div><div class="line">        __asm__ <span class="keyword">volatile</span> (<span class="string">"fldcw (%0)"</span> : : <span class="string">"g"</span> (&amp;cw));</div><div class="line">      &#125;</div><div class="line"><span class="meta">#  endif</span></div><div class="line"><span class="meta">#endif</span></div><div class="line"></div><div class="line">      <span class="comment">/* Create the global lock.</span></div><div class="line">       * NB. Ths is one of the first things we do ... setting up a new lock</div><div class="line">       * must not call any other Objective-C classes and must not involve</div><div class="line">       * any use of the autorelease system.</div><div class="line">       */</div><div class="line">      gnustep_global_lock = [<span class="built_in">NSRecursiveLock</span> new];</div><div class="line"></div><div class="line">      <span class="comment">/* Behavior debugging ... enable with environment variable if needed.</span></div><div class="line">       */</div><div class="line">      GSObjCBehaviorDebug(GSPrivateEnvironmentFlag(<span class="string">"GNUSTEP_BEHAVIOR_DEBUG"</span>,</div><div class="line">  GSObjCBehaviorDebug(<span class="number">-1</span>)));</div><div class="line"></div><div class="line">      <span class="comment">/* See if we should cleanup at process exit.</span></div><div class="line">       */</div><div class="line">      <span class="keyword">if</span> (<span class="literal">YES</span> == GSPrivateEnvironmentFlag(<span class="string">"GNUSTEP_SHOULD_CLEAN_UP"</span>, <span class="literal">NO</span>))</div><div class="line">  &#123;</div><div class="line">    [<span class="keyword">self</span> setShouldCleanUp: <span class="literal">YES</span>];</div><div class="line">    [<span class="keyword">self</span> registerAtExit: <span class="keyword">@selector</span>(_atExit)];</div><div class="line">  &#125;</div><div class="line">      autorelease_class = [<span class="built_in">NSAutoreleasePool</span> <span class="keyword">class</span>];</div><div class="line">      autorelease_sel = <span class="keyword">@selector</span>(addObject:);</div><div class="line">      autorelease_imp = [autorelease_class methodForSelector: autorelease_sel];</div><div class="line"></div><div class="line">      <span class="built_in">NSConstantStringClass</span> = [<span class="built_in">NSString</span> constantStringClass];</div><div class="line"></div><div class="line">      GSPrivateBuildStrings();</div><div class="line">      <span class="built_in">NSZombieEnabled</span> = GSPrivateEnvironmentFlag(<span class="string">"NSZombieEnabled"</span>, <span class="literal">NO</span>);</div><div class="line">      <span class="built_in">NSDeallocateZombies</span> = GSPrivateEnvironmentFlag(<span class="string">"NSDeallocateZombies"</span>, <span class="literal">NO</span>);</div><div class="line">      zombieMap = <span class="built_in">NSCreateMapTable</span>(<span class="built_in">NSNonOwnedPointerMapKeyCallBacks</span>,</div><div class="line">  <span class="built_in">NSNonOwnedPointerMapValueCallBacks</span>, <span class="number">0</span>);</div><div class="line">      zombieClass = objc_lookUpClass(<span class="string">"NSZombie"</span>);</div><div class="line"></div><div class="line">      <span class="comment">/* Now that we have a working autorelease system and working string</span></div><div class="line">       * classes we are able to set up notifications.</div><div class="line">       */</div><div class="line">      [[<span class="built_in">NSNotificationCenter</span> defaultCenter]</div><div class="line">  addObserver: <span class="keyword">self</span></div><div class="line">     selector: <span class="keyword">@selector</span>(_becomeMultiThreaded:)</div><div class="line">         name: <span class="built_in">NSWillBecomeMultiThreadedNotification</span></div><div class="line">       object: <span class="literal">nil</span>];</div><div class="line">      [<span class="built_in">NSUserDefaults</span> <span class="keyword">class</span>];</div><div class="line">    &#125;</div><div class="line">  <span class="keyword">return</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>查了一些资料，解释一下这么做的目的，这里用到了一种叫做<code>IMP Caching</code>的技术用于解决对<code>autorelease</code>方法的频繁的调用，这个方法非常高效，在进行调用时，对类名、方法名和运行时的函数指针的结果进行缓存，如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">autorelease_class = [<span class="built_in">NSAutoreleasePool</span> <span class="keyword">class</span>];</div><div class="line">autorelease_sel = <span class="keyword">@selector</span>(addObject:);</div><div class="line">autorelease_imp = [autorelease_class methodForSelector: autorelease_sel];</div></pre></td></tr></table></figure>
+<p>还记得<code>autorelease</code>方法实现中的<code>(*autorelease_imp)(autorelease_class, autorelease_sel, self);</code>这一句吗？ 这就是用来调用其缓存值。据说这相比于直接调用会快两倍左右(未考证)。</p>
+<p>总结一句话：本质就是调用<code>NSAutoreleasePool</code>中的<code>+addObject</code>方法来向缓存池中添加对象。</p>
+<p>那让我们转移到<code>NSAutoreleasePool</code>类。</p>
+<p>如下是<code>addObject</code>方法的实现：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div></pre></td><td class="code"><pre><div class="line">- (<span class="keyword">void</span>) addObject: (<span class="keyword">id</span>)anObj</div><div class="line">&#123;</div><div class="line">  <span class="comment">/* If the global, static variable AUTORELEASE_ENABLED is not set,</span></div><div class="line">     do nothing, just return. */</div><div class="line">  <span class="keyword">if</span> (!autorelease_enabled)</div><div class="line">    <span class="keyword">return</span>;</div><div class="line"></div><div class="line">  <span class="keyword">if</span> (_released_count &gt;= pool_count_warning_threshhold)</div><div class="line">    [<span class="built_in">NSException</span> raise: <span class="built_in">NSGenericException</span></div><div class="line">     format: <span class="string">@"AutoreleasePool count threshhold exceeded."</span>];</div><div class="line"></div><div class="line">  <span class="comment">/* Get a new array for the list, if the current one is full. */</span></div><div class="line">  <span class="keyword">while</span> (_released-&gt;count == _released-&gt;size)</div><div class="line">    &#123;</div><div class="line">      <span class="keyword">if</span> (_released-&gt;next)</div><div class="line">  &#123;</div><div class="line">    <span class="comment">/* There is an already-allocated one in the chain; use it. */</span></div><div class="line">    _released = _released-&gt;next;</div><div class="line">  &#125;</div><div class="line">      <span class="keyword">else</span></div><div class="line">  &#123;</div><div class="line">    <span class="comment">/* We are at the end of the chain, and need to allocate a new one. */</span></div><div class="line">    <span class="keyword">struct</span> autorelease_array_list *new_released;</div><div class="line">    <span class="keyword">unsigned</span> new_size = _released-&gt;size * <span class="number">2</span>;</div><div class="line">  </div><div class="line">    new_released = (<span class="keyword">struct</span> autorelease_array_list*)</div><div class="line">      <span class="built_in">NSZoneMalloc</span>(<span class="built_in">NSDefaultMallocZone</span>(),</div><div class="line">      <span class="keyword">sizeof</span>(<span class="keyword">struct</span> autorelease_array_list) + (new_size * <span class="keyword">sizeof</span>(<span class="keyword">id</span>)));</div><div class="line">    new_released-&gt;next = <span class="literal">NULL</span>;</div><div class="line">    new_released-&gt;size = new_size;</div><div class="line">    new_released-&gt;count = <span class="number">0</span>;</div><div class="line">    _released-&gt;next = new_released;</div><div class="line">    _released = new_released;</div><div class="line">  &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">  <span class="comment">/* Put the object at the end of the list. */</span></div><div class="line">  _released-&gt;objects[_released-&gt;count] = anObj;</div><div class="line">  (_released-&gt;count)++;</div><div class="line"></div><div class="line">  <span class="comment">/* Keep track of the total number of objects autoreleased in this pool */</span></div><div class="line">  _released_count++;</div><div class="line">&#125;</div><div class="line"></div><div class="line">+ (<span class="keyword">void</span>) addObject: (<span class="keyword">id</span>)anObj</div><div class="line">&#123;</div><div class="line">  <span class="built_in">NSThread</span>    *t = GSCurrentThread();</div><div class="line">  <span class="built_in">NSAutoreleasePool</span>  *pool;</div><div class="line">  <span class="built_in">NSAssert</span>(<span class="literal">nil</span> != t, <span class="string">@"Creating autorelease pool on nonexistent thread!"</span>);</div><div class="line"></div><div class="line">  pool = t-&gt;_autorelease_vars.current_pool;</div><div class="line">  <span class="keyword">if</span> (pool == <span class="literal">nil</span> &amp;&amp; t-&gt;_active == <span class="literal">NO</span>)</div><div class="line">    &#123;</div><div class="line">      <span class="comment">// Don't leak while exiting thread.</span></div><div class="line">      pool = t-&gt;_autorelease_vars.current_pool = [<span class="keyword">self</span> new];</div><div class="line">    &#125;</div><div class="line">  <span class="keyword">if</span> (pool != <span class="literal">nil</span>)</div><div class="line">    &#123;</div><div class="line">      (*pool-&gt;_addImp)(pool, <span class="keyword">@selector</span>(addObject:), anObj);</div><div class="line">    &#125;</div><div class="line">  <span class="keyword">else</span></div><div class="line">    &#123;</div><div class="line">      <span class="built_in">NSAutoreleasePool</span>  *arp = [<span class="built_in">NSAutoreleasePool</span> new];</div><div class="line"></div><div class="line">      <span class="keyword">if</span> (anObj != <span class="literal">nil</span>)</div><div class="line">  &#123;</div><div class="line">    <span class="built_in">NSLog</span>(<span class="string">@"autorelease called without pool for object (%p) "</span></div><div class="line">      <span class="string">@"of class %@ in thread %@"</span>, anObj,</div><div class="line">      <span class="built_in">NSStringFromClass</span>([anObj <span class="keyword">class</span>]), [<span class="built_in">NSThread</span> currentThread]);</div><div class="line">  &#125;</div><div class="line">      <span class="keyword">else</span></div><div class="line">  &#123;</div><div class="line">    <span class="built_in">NSLog</span>(<span class="string">@"autorelease called without pool for nil object."</span>);</div><div class="line">  &#125;</div><div class="line">      [arp drain];</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>实现的比较复杂，简单的描述下：addObject类方法调用正在使用的<code>NSAutoreleasePool</code>对象的<code>addObject</code>实例方法，以实现缓存。其中还包括了关于嵌套生成或持有<code>NSAutoreleasePool</code>对象的情况，在这种情况下，使用嵌套最内侧的对象。<code>NSAutoreleasePool</code>的<code>addObject</code>方法和<code>NSMutableArray</code>的<code>addObject</code>方法类似，使用的是链表。</p>
+<p><strong>注意：</strong> OC中的Array其实和其他语言中的数组有所区别，<code>NSArray</code>是数组，而且不可变，但是<code>NSMutableArray</code>的实现非常类似于链表，可以很方便地、在任意一个位置添加或移除一个节点。</p>
+<p><code>drain</code>操作类似<code>release</code>操作，只不过<code>drain</code>用于<code>NSAutoreleasePool</code>对象的释放。</p>
+<p>系统在runloop中创建的autoreleaspool会在 runloop 一个事件结束时进行释放操作，我们手动创建的 autoreleasepool 会在 block 执行完成之后进行 drain 操作。</p>
+<p><strong>注意：</strong></p>
+<ul>
+<li>当 block 以异常（exception）结束时，pool 不会被 drain</li>
+<li>Pool 的 drain 操作会把所有标记为 autorelease 的对象的引用计数减一，但是并不意味着这个对象一定会被释放掉，我们可以在 autorelease pool 中手动 retain 对象，以延长它的生命周期（在 MRC 中）。</li>
+</ul>
+<p>需要创建和销毁大量的对象时，使用手动创建的 autoreleasepool 可以有效的避免内存峰值的出现。</p>
+<p>因为如果不手动创建的话，外层系统创建的 pool 会在整个 runloop circle 结束之后才进行 drain，手动创建的话，会在 block 结束之后就进行 drain 操作。有一个普遍的例子：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">100000000</span>; i++)</div><div class="line">&#123;</div><div class="line">    <span class="keyword">@autoreleasepool</span></div><div class="line">    &#123;</div><div class="line">        <span class="built_in">NSString</span>* string = <span class="string">@"ab c"</span>;</div><div class="line">        <span class="built_in">NSArray</span>* array = [string componentsSeparatedByString:string];</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>如果不使用 autoreleasepool ，需要在循环结束之后释放 100000000 个字符串，如果 使用的话，则会在每次循环结束的时候都进行 release 操作。</p>
+<p>下一篇，我们将正式步入ARC。</p>
+
+      
+    </div>
+    <footer>
+      
+          
+<!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+  <span class="jiathis_txt">分享到：</span>
+  <a class="jiathis_button_weixin">微信</a>
+  <a class="jiathis_button_tsina">新浪微博</a>
+  <a class="jiathis_button_renren">人人网</a>
+  <a class="jiathis_button_qzone">QQ空间</a>
+  <a class="jiathis_button_douban">豆瓣</a>
+  <a class="jiathis_button_pocket">Pocket</a>
+  <a href="http://www.jiathis.com/share?uid=901656" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank">更多</a>
+  <a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript" src="http://v3.jiathis.com/code_mini/jia.js?uid=901656" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+          <div class="clearfix"></div>
+          <nav id="pagination">
+  
+    <a href="/2016/01/03/浅谈iOS中的内存管理三/" class="alignleft prev"><i class="fa fa-long-arrow-left">上一页</i></a>
+  
+  
+    <a href="/2015/12/29/浅谈iOS中的内存管理一/" class="alignright next">下一页<i class="fa fa-long-arrow-right"></i></a>
+  
+  <div class="clearfix"></div>
+</nav>
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">Kommentare</h1>
+
+  
+      <!-- Duoshuo Comment BEGIN -->
+<div class="ds-thread" data-thread-key="/2015/12/29/浅谈iOS中的内存管理二/"></div>
+<!-- Duoshuo Comment END -->
+  
+</section>
+
+
+
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div>
+  
+  &copy; 2016 Jack Alan
+  
+</div>
+Powered by <a href="http://iJack.pw/" title="Jack Alan" target="_blank" rel="external">Jack Alan</a> and <a href="http://pages.github.com/" title="GitHub Pages" target="_blank" rel="external">GitHub Pages</a>
+
+<div class="clearfix"></div>
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3Ffe3ef7effe40ca4903cec1453f5c809f' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+ What ?
+<script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1254084718'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s95.cnzz.com/z_stat.php%3Fid%3D1254084718%26show%3Dpic' type='text/javascript'%3E%3C/script%3E"));</script>
+<OBJECT style="border: 0px" type="text/x-scriptlet" data="" width=0 Height=0 ></OBJECT>
+ </footer>
+  
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
+
+
+
+
+    <script type="text/javascript">
+        (function(){
+
+            $(window).scroll(function(){
+
+                var scrollTop = $(window).scrollTop();
+                if ( scrollTop >200 ){
+                    $("#main-nav").removeClass('normal_mode').addClass('top_mode');
+                } else{
+                    $("#main-nav").removeClass('top_mode').addClass('normal_mode');
+                }
+
+            });
+
+        })();
+    </script>
+
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript">
+  (function($){
+    $('.fancybox').fancybox({
+      'titlePosition': 'inside'
+    });
+  })(jQuery);
+  </script>
+
+
+
+    
+    <script type="text/javascript">
+      var duoshuoQuery = {short_name:"ijack"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.src = 'http://static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0] 
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+<script type="text/javascript">
+  
+  $(function(){
+
+    $('.title').hover(
+      function() {      
+        $(this).stop().animate(
+          {'marginLeft': '10px'}, 200
+        );   
+      }, 
+      function() {       
+        $(this).stop().animate({'marginLeft': '0px'}, 200);      
+      
+    });   
+
+  });
+
+</script>
+
+
+
+</body>
+</html>

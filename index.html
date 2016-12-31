@@ -1,0 +1,1049 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Jack Alan</title>
+  <meta name="author" content="Jack Alan">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+  <meta property="og:site_name" content="Jack Alan"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.ico" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jack Alan" type="application/atom+xml">
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+<link rel="stylesheet" href="/css/style.css">
+  <script src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+
+<body>
+  <header id="header" class='normal_mode'>
+    <nav id="main-nav">
+  <ul class='container'>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+      <li><a href="/Books&Courses">Books &amp; Courses</a></li>
+    
+      <li><a href="/Links">Friends</a></li>
+    
+      <li><a href="/AboutMe">About</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+  </header>
+  <div id="content" class="container">
+    <div id="cover">
+	<div id="profile" alt="http://115.28.103.52/bingimage/bing.php">
+		<a href="/">
+			<div class="logo">
+				<img src="/logo.png" alt="Profile Picture">
+			</div>
+			<div id="title">Jack Alan</div>
+		</a>
+
+		
+		 <ul class="my-socials">
+  
+  <li>
+  	<a href="https://github.com/AlanMelody" class="github" target="_blank">
+  		<i class="fa fa-github"></i>
+  	</a>
+  </li>
+  
+  <li>
+  	<a href="http://weibo.com/iAlanMelody" class="weibo" target="_blank">
+  		<i class="fa fa-weibo"></i>
+  	</a>
+  </li>
+  
+ 
+ <li>
+   	<a href="mailto:jack@iJack.pw" class="email" target="_blank" title="Email Me">
+  		<i class="fa fa-envelope"></i>
+  	</a>
+ </li>
+ 
+</ul>
+	</div>
+</div>
+
+
+  <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+      <time datetime="2016-06-08T21:30:37.000Z"><a href="/2016/06/08/let-it-throw/">Wed, Jun 8 2016, 5:30:37 pm</a></time>
+
+  
+    <h1 class="title"><a href="/2016/06/08/let-it-throw/">如何在 Swift 中进行错误处理</a></h1>
+  
+
+
+
+  
+  <div class="tags">
+  	<i class="fa fa-tag"></i>
+    <a href="/tags/iOS/">iOS</a>, <a href="/tags/Swift/">Swift</a>, <a href="/tags/翻译/">翻译</a>
+  </div>
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <p>test</p>
+<blockquote>
+<p>本文翻译自 Olivier Halligon 发布在<a href="http://alisoftware.github.io/" target="_blank" rel="external">AliSoftware</a>的文章<a href="http://alisoftware.github.io/swift/error/2015/12/17/let-it-throw/" target="_blank" rel="external">Let it throw</a>，文章版权由 AliSoftware 授给SwiftGG翻译组。翻译者为博主<a href="http://jackygao.com" target="_blank" rel="external">JackAlan</a>。</p>
+</blockquote>
+<p>今天的文章将会讲解关于如何在 Swift 中进行错误处理。</p>
+<p>说实话，为了配合这个冬季❄️☃️，我取了一个有趣的文章标题。</p>
+<blockquote>
+<p>译者注：原文标题为 Let it throw, Let it throw! 是模仿冰雪奇缘的主题曲 Let it go ，并且文章的副标题也在模仿冰雪奇缘的经典台词。</p>
+</blockquote>
+<h3 id="Objective-C-以及对应的-NSError"><a href="#Objective-C-以及对应的-NSError" class="headerlink" title="Objective-C 以及对应的 NSError"></a>Objective-C 以及对应的 NSError</h3><p>还记得 Objective-C 吗？那时<sup><a href="#fn:nshipster">1</a></sup>，官方的方法是通过传入一个 <code>NSError*</code> 的引用进行错误处理。</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">NSError* error;</div><div class="line">BOOL ok = [string writeToFile:path</div><div class="line">           atomically:YES</div><div class="line">           encoding:NSUTF8StringEncoding</div><div class="line">            error:&amp;error];</div><div class="line">if (!ok) &#123;</div><div class="line">  NSLog(@“发生了一个错误: %@", error);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>那简直是太痛苦了。以至于许多人不想甚至是懒得去检查错误，只是简单的在那里传一个 <code>NULL</code> 。这是很不负责不安全的行为。</p>
+<h3 id="抛出一个错误"><a href="#抛出一个错误" class="headerlink" title="抛出一个错误"></a>抛出一个错误</h3><center><img src="http://alisoftware.github.io/assets/frozen-throw-man.jpg" alt=""></center>
+
+<p>随着 Swift 2.0 的到来，苹果决定采用一种不同的方式进行错误处理：使用 <code>throw</code> <sup><a href="#fn:not-exception">2</a></sup></p>
+<p>使用 <code>throw</code> 非常的简单：</p>
+<ul>
+<li>如果你想创建一个可能出错的函数，用 throws 标记在它的签名处；</li>
+<li>如果需要的话，可以在函数中使用 <code>throw someError</code> ；</li>
+<li>在调用的地方，你必须明确的在能抛出错误<sup><a href="#fn:why-try">3</a></sup>的方法的前面使用 <code>try</code> ;</li>
+<li>可以使用 <code>do { … } catch { … }</code> 这样的结构用来捕获并处理错误。</li>
+</ul>
+<p>看起来像这样：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 定义一个可以抛错误的方法…</span></div><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">someFunctionWhichCanFail</span><span class="params">(param: Int)</span></span> <span class="keyword">throws</span> -&gt; <span class="type">String</span> &#123;</div><div class="line">  ...</div><div class="line">  <span class="keyword">if</span> (param &gt; <span class="number">0</span>) &#123;</div><div class="line">    <span class="keyword">return</span> <span class="string">"somestring"</span></div><div class="line">  &#125;</div><div class="line">  <span class="keyword">else</span> &#123;</div><div class="line">    <span class="keyword">throw</span> <span class="type">NSError</span>(domain: <span class="string">"MyDomain"</span>, code: <span class="number">500</span>, userInfo: <span class="literal">nil</span>)</div><div class="line">  &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// … 然后调用这个方法</span></div><div class="line"><span class="keyword">do</span> &#123;</div><div class="line">  <span class="keyword">let</span> result: <span class="type">String</span> = <span class="keyword">try</span> someFunctionWhichCanFail(-<span class="number">2</span>)</div><div class="line">  <span class="built_in">print</span>(<span class="string">"success! <span class="subst">\(result)</span>"</span>)</div><div class="line">&#125;</div><div class="line"><span class="keyword">catch</span> &#123;</div><div class="line">  <span class="built_in">print</span>(<span class="string">"Oops: <span class="subst">\(error)</span>"</span>)</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="错误再也阻挡不了我了"><a href="#错误再也阻挡不了我了" class="headerlink" title="错误再也阻挡不了我了"></a>错误再也阻挡不了我了</h3><center><img src="http://alisoftware.github.io/assets/frozen-failure.jpg" alt=""></center>
+
+<p>你可以看到 <code>someFunctionWitchCanFail</code> 返回了一个普通的 <code>String</code> ，当一切正常的情况下， <code>String</code> 也是其返回值的类型。先考虑最简单的情况(在 <code>do { … }</code> 中的)，“通常情况下”可以很方便的调用这个函数去处理没有错误发生的情况。</p>
+<p>唯一的这些方法可能会出错的提醒就是<code>try</code>关键字，编译器强制让你把 <code>try</code> 添加到方法调用的位置的前面，否则就像是调用一个无抛出错误的方法。然后，只需要在一个单独的地方(在 <code>catch</code> 里)写错误处理的代码。</p>
+<p>要注意的是你可以在 <code>do</code> 代码段中写多于一行的代码(并且 <code>try</code> 可以调用不止一个抛错误的方法)。如果一切顺利的话，将会像预期的那样执行那些方法，但是一旦方法出错就会跳出 <code>do</code> 代码段进入声明 <code>catch</code> 处。对于那些有很多潜在错误的大段代码来说，你可以在一个单一的错误路径中处理所有的错误，这也是非常方便的。</p>
+<h3 id="NSError-有点挫了"><a href="#NSError-有点挫了" class="headerlink" title="NSError 有点挫了"></a>NSError 有点挫了</h3><center><img src="http://alisoftware.github.io/assets/frozen-fixer-upper.jpg" alt=""></center>
+
+<p>OK，在这个例子下，我们仍然得用 <code>NSError</code> 处理错误，这有点痛苦。用 <code>==</code> 来比较域和错误代码，以及制作一个域和常量代码的列表，只是为了知道我们得到了什么错误以及如何正确的处理。。。哎哟。</p>
+<p>但是我们可以解决这个问题！如果用<a href="http://alisoftware.github.io/swift/enum/constants/2015/07/19/enums-as-constants/" target="_blank" rel="external">Enums as Constants</a>这篇文章里的知识：用 <code>enum</code> 替代 errors？</p>
+<p>好吧，有一个好消息，那就是苹果提供了新的错误处理模式。事实上，当一个函数抛出错误时，它可以抛出任何遵从 <code>ErrorType</code> 的错误。 <code>NSError</code> 是其中的类型之一，但是你也可以自己搞一个，苹果也推荐这么做。</p>
+<p>最适合 <code>ErrorType</code> 类型的就是 <code>enum</code> 了，如果有需要的话，甚至二者之间可以有关联值。比如：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">enum</span> <span class="title">KristoffError</span> : <span class="title">ErrorType</span> </span>&#123;</div><div class="line">  <span class="keyword">case</span> <span class="type">ClumsyWayHeWalks</span></div><div class="line">  <span class="keyword">case</span> <span class="type">GrumpyWayHeTalks</span></div><div class="line">  <span class="keyword">case</span> <span class="type">PearShapedSquareShapedWeirdnessOfHisFeet</span></div><div class="line">  <span class="keyword">case</span> <span class="type">NotWashedSince</span>(days: <span class="type">Int</span>)</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>然后你现在就可以在一个函数里使用 <code>throw KristoffError.NotWashedSince(days: 3)</code>来抛出错误，然后在调用的地方使用 <code>catch KristoffError.NotWashedSince(let days)</code>来处理这些错误：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">loveKristoff</span><span class="params">()</span></span> <span class="keyword">throws</span> -&gt; <span class="type">Void</span> &#123;</div><div class="line">  <span class="keyword">guard</span> daysSinceLastShower == <span class="number">0</span> <span class="keyword">else</span> &#123;</div><div class="line">    <span class="keyword">throw</span> <span class="type">KristoffError</span>.<span class="type">NotWashedSince</span>(days: daysSinceLastShower)</div><div class="line">  &#125;</div><div class="line">  ...</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">do</span> &#123;</div><div class="line">  <span class="keyword">try</span> loveKristoff()</div><div class="line">&#125;</div><div class="line"><span class="keyword">catch</span> <span class="type">KristoffError</span>.<span class="type">NotWashedSince</span>(<span class="keyword">let</span> days) &#123;</div><div class="line">  <span class="built_in">print</span>(<span class="string">"Ewww, he hasn't had a shower since <span class="subst">\(days)</span> days!"</span>)</div><div class="line">&#125;</div><div class="line"><span class="keyword">catch</span> &#123;</div><div class="line">  <span class="comment">// Any other kind of error, whatever it is</span></div><div class="line">  <span class="built_in">print</span>(<span class="string">"I prefer we stay friends"</span>)</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>相比此前，这种方式更容易的捕获错误！</p>
+<p>这也使得错误拥有清晰的名字、常量以及关联值。再也没有复杂的 <code>userInfo</code> 了，在 enum 中你可以清晰地看到值的关联，就像如上例子中的 <code>days</code>，并且它只对特定的类型有效(不会对 <code>ClumsyWayHeWalks</code> 中的 <code>days</code> 关联值有效)。</p>
+<h3 id="根本拿不回来"><a href="#根本拿不回来" class="headerlink" title="根本拿不回来"></a>根本拿不回来</h3><center><img src="http://alisoftware.github.io/assets/frozen-cant-hold-it-back.jpg" alt=""></center>
+
+<p>当你调用一个抛出错误函数，错误就会被函数中的 <code>do...catch</code> 捕获。但是如果错误没有被捕获，它就会被传递到上一层。比如：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">doFail</span><span class="params">()</span></span> <span class="keyword">throws</span> -&gt; <span class="type">Void</span> &#123; <span class="keyword">throw</span> … &#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">test</span><span class="params">()</span></span> &#123;</div><div class="line">  <span class="keyword">do</span> &#123;</div><div class="line">  <span class="keyword">try</span> doTheActualCall()</div><div class="line">  &#125; <span class="keyword">catch</span> &#123;</div><div class="line">  <span class="built_in">print</span>(<span class="string">"Oops"</span>)</div><div class="line">  &#125;</div><div class="line">&#125;</div><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">doTheActualCall</span><span class="params">()</span></span> <span class="keyword">throws</span> &#123;</div><div class="line">  <span class="keyword">try</span> doFail()</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这里，当 <code>doFail</code> 被调用时，潜在的错误没有被 <code>doTheActualCall</code> 捕获(没有 <code>do...catch</code> 捕获错误)，所以它就被传递到 <code>test()</code> 函数。由于 <code>doTheActualCall</code> 没有捕获任何错误，所以它必须被标记为 <code>throws</code> ：即使它不能通过自己抛出错误，但仍能传递。它自己不能处理错误，必须传递到更高层。</p>
+<p>另一方面，<code>test()</code> 在内部捕获所有的错误，所以，即使它调用一个抛出函数(<code>try doTheActualCall()</code>)，那个函数抛出的所有的错误也会在 <code>do...catch</code> 块中被捕获。函数 <code>test()</code> 本身不抛出错误，所以调用者也不要知道其内部行为。</p>
+<h3 id="隐藏，不要让他们知道"><a href="#隐藏，不要让他们知道" class="headerlink" title="隐藏，不要让他们知道"></a>隐藏，不要让他们知道</h3><center><img src="http://alisoftware.github.io/assets/frozen-conceal-dont-feel.jpg" alt=""></center>
+
+<p>你现在可能想知道，如何知道方法到底抛出哪种错误。的确，被 <code>throws</code> 标记的函数到底能抛出哪种 <code>ErrorType</code>？它能抛出 <code>KristoffErrors</code> <code>JSONErrors</code> 或者其他类型的吗？我到底需要捕获哪种呢？</p>
+<p>好吧，这的确是个问题。目前，由于二进制接口以及弹性问题<sup><a href="#fn:resilience">4</a></sup>，这还是不可能的。唯一的方式就是你代码的文档。</p>
+<p>但这仍然是一件好事。比如想象你用两个库，<code>MyLibA</code>中函数 <code>funcA</code> 会抛出 <code>MyLibAError</code> 错误，<code>MyLibB</code>中函数 <code>funcB</code> 会抛出 <code>MyLibBError</code> 错误。</p>
+<p>然后你可能想创建你自己的库 <code>MyLibC</code> ，封装之前的两个库，用函数 <code>funcC()</code> 调用 <code>MyLibA.funcA()</code> 和 <code>MyLibB.funcB()</code>。所以，函数 <code>funcC</code> 的结果可能会抛出 <code>MyLibAError</code> 或者 <code>MyLibBError</code>。而且，如果你添加了另一个抽象层，这就变得很糟糕了，会有更多的错误类型被抛出。如果我不得不把它们都列出来，并且调用的地方需要把它们全部捕获，这将会造成一堆冗长的签名和 <code>catch</code> 代码。</p>
+<h3 id="别让他们进来，别让他们看见"><a href="#别让他们进来，别让他们看见" class="headerlink" title="别让他们进来，别让他们看见"></a>别让他们进来，别让他们看见</h3><center><img src="http://alisoftware.github.io/assets/frozen-dont-let-them-in.jpg" alt=""></center>
+
+<p>基于上面的原因，也为了防止你的内部错误超出你的库的作用域，以及为了限制那些必须由用户处理的错误类型的数量，我建议你把错误类型的作用域限制到每个抽象层次。</p>
+<p>在如上的例子中，你应该抛出 <code>MyLibCErrors</code> 取而代之，而不是让 <code>funcC</code> 直接传递 <code>MyLibAErrors</code> 和 <code>MyLibBErrors</code>。我的建议有如下的两个原因，都是和抽象相关的:</p>
+<ol>
+<li>你的用户不应该需要知道你在内部使用哪个库。如果将来的某天，你决定改变你的实现：使用 <code>SomeOtherPopularLibA</code> 替代<code>MyLibA</code>，显然这个库不会抛出相同的错误，你自己的 <code>MyLibC</code> 框架的调用者不需要知道或关心。这就是抽象的全部。</li>
+<li>调用者不应该需要处理所有的错误。当然你可以捕获那些错误中的一些并且在内部处理：把 <code>MyLibA</code> 抛出的所有错误都暴露给用户是没有意义的，比如一个 <code>FrameworkConfigurationError</code> 错误表明你误用了 <code>MyLibA</code> 框架并且忘了调用它的 <code>setup()</code> 方法，或者是任何不应该由用户做的事情，因为用户根本无能为力。这种错误是你的错误，而不是别人的。</li>
+</ol>
+<p>所以，取而代之，你的 <code>funcC</code> 应该很可能捕获所有 <code>MyLibAErrors</code> 和 <code>MyLibBErrors</code>，封装它们为 <code>MyLibCErrors</code> 替代。这样的话，你的框架的使用者不需要知道你在内部使用了什么。你可以在任何时候改变你的内部实现和使用的库，并且你只需要给用户暴露那些他们需要关注的错误。</p>
+<h3 id="其他资料分享-5"><a href="#其他资料分享-5" class="headerlink" title="其他资料分享 5"></a>其他资料分享 <a href="#fn:ref">5</a></h3><center><img src="http://alisoftware.github.io/assets/frozen-sandwiches.jpg" alt=""></center>
+
+<blockquote>
+<p>译者注：原标题为 <code>We finish each others sandwiches</code>，是在模仿冰雪奇缘中王子和公主的对话，表示和其他博主以及读者的一种亲近的关系。</p>
+</blockquote>
+<p>本来还有一些东西要讲，关于 <code>throw</code> 和 Swift 2.0 的错误处理模型，我本可以讲一些关于 <code>try?</code> 和 <code>try!</code>，关于高阶函数中的 <code>rethrows</code> 关键字。</p>
+<p>这里，没有时间面面俱到了，那会使得我的文章非常长。但是别的有趣的文章可能会帮你探索 Swift 错误处理的世界，包括(但不限于)：</p>
+<ul>
+<li><a href="http://robnapier.net/throw-what-dont-throw" target="_blank" rel="external">Throw that don’t throw</a> and <a href="http://robnapier.net/re-throws" target="_blank" rel="external">Re…throws?</a> by Rob Napier</li>
+<li><a href="https://littlebitesofcocoa.com/108-error-handling" target="_blank" rel="external">Error Handling</a> by Little Bites of Cocoa</li>
+<li><a href="http://www.sunsetlakesoftware.com/2015/11/03/what-we-learned-rewriting-our-robotic-control-software-swift" target="_blank" rel="external">What we learned from rewriting our robotic control software in Swift</a>, by Brad Larson</li>
+<li>… (别犹豫了，快去评论区分享更多链接吧！)</li>
+</ul>
+<center><img src="http://alisoftware.github.io/assets/frozen-olaf-holidays.jpg" alt=""></center>
+
+<hr>
+<p><a name="fn:nshipster"></a></p>
+<ol>
+<li>更多关于在 Objective-C 中错误处理的信息，可以参考这篇文章：<a href="http://nshipster.com/nserror/" target="_blank" rel="external">NSError</a>。今天的文章是关于 Swift 中的新方式的，所以别在旧事物上花费太多的时间。<br><a name="fn:not-exception"></a></li>
+<li>尽管它叫 throw ，但是 <code>throw</code> 不是像 Java 或者 C++ 甚至 OC 中的 throw exception。但是使用的方式非常相似，苹果决定保留相同的措辞，所以习惯于 exceptions 的人会感到非常自然。<br><a name="fn:why-try"></a></li>
+<li>这是编译器强制的，其目的是让你意识到这个函数可能出错，你必须处理潜在的错误。<br><a name="fn:resilience"></a></li>
+<li>Swift 2.0 还不支持 typed throws，但是这里有一个关于添加这个特性的讨论，这里 Chris Lattner 解释了 Swift 2 不支持的原因，以及为什么我们需要 Swift 3.0 的弹性模型以获得这个特性。<br><a name="#fn:ref"></a></li>
+<li>好了，我保证这是我最后一次可耻使用 <em>Frozen</em> 标题了。</li>
+</ol>
+
+      
+    </div>
+    <footer>
+      
+        <div class="alignleft">
+            <a href="/2016/06/08/let-it-throw/#more" class="more-link"><i class="fa fa-chevron-right"></i>查看全文</a>
+        </div>
+        
+        
+          <div class="alignright"> 
+            <a href="http://iJack.pw/2016/06/08/let-it-throw/#comment" class="comment-link">
+              <i class="fa fa-comments"></i><span class="ds-thread-count" data-thread-key="/2016/06/08/let-it-throw/">&nbsp;
+              </span>
+            </a>
+          </div>
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+      <time datetime="2016-05-24T02:36:42.000Z"><a href="/2016/05/23/naturally-final-classes-in-swift/">Mon, May 23 2016, 10:36:42 pm</a></time>
+
+  
+    <h1 class="title"><a href="/2016/05/23/naturally-final-classes-in-swift/">合理的使用 Swift 中的 final 类</a></h1>
+  
+
+
+
+  
+  <div class="tags">
+  	<i class="fa fa-tag"></i>
+    <a href="/tags/iOS/">iOS</a>, <a href="/tags/Swift/">Swift</a>, <a href="/tags/翻译/">翻译</a>
+  </div>
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <p>你上一次在 Swift 中继承一个类是什么时候？而且这个类是你创建的但不是 Cocoa 体系中的一部分。在 protocol 扩展和一般的 extension 扩展存在的情况下，你多久继承一次非 Cocoa 类型的 class ？</p>
+<p>如果你的答案在 0% 和 5% 之间，你是相当具有代表性的。在 Swift 的类型体系中，引用类型不再使用继承来紧密耦合了。</p>
+<p>进一步来说，你多久创建一次类和子类带着这样的意图：他们将来会被继承，通过一个特定模块之外的 API 客户端。(假设，当然，你不是 Apple，并且你没有在写 view 和 controller)。</p>
+<p>当继承成为例外而不是规则，是时候考虑默认创建 final 类？或者将模块封装为 <code>internal-by-default</code> 更好？这样公开类在原模块外就不能被继承。</p>
+<p>辩论目前如火如荼的展开在 Swift 进度列表中，关于这如何进行，以及是否应该这么做，是否类应该被设计为强制调用父类以重写方法(需要上层调用)。</p>
+<p>John McCall 写道：</p>
+<hr>
+<p>我们目前的意图是，公开的继承和重写将被锁定为默认，但是内部的继承和重写不会。我认为这达到了平衡，此外，这与一般语言的代码演进是一致的，通过以下几种方式将促进 “无副作用” 迅速发展：</p>
+<p>(1) 避免手工管理的障碍，当你正在 hack 一个模块最初的实现代码，但是<br>(2) 不会让最初的实现代码在内部隐源，并且二进制兼容允许模块之外的代码，以及<br>(3) 提供良好的语言工具，来逐渐的把那些最初的原型接口构建为更强的内部抽象。</p>
+<p>所有默认行为的硬限制都维系在模块边界上，因为我们假定，当你之前犯了一个错误的决定，这能直接的在模块内部修复任何问题。</p>
+<p>所以，okay，默认一个类是可继承的，并且不是真的这样设计的，现在模块中有一些子类，这导致了一些问题。只要没人改变缺省情况 (他们本可以无所顾忌的在任何情况下做，但如果只需要一个外部的子类，那就不太可能去做)，所有这些子类仍是模块内的，你仍然有自由的控制权，以纠正最初的错误设计。</p>
+<hr>
+<p>Joe Groff 的想法：</p>
+<hr>
+<p>强大的子类化能力要求有意识的设计，就像 API 设计的其他所有方面一样。</p>
+<hr>
+<p>Jordan Rose:</p>
+<hr>
+<p>关于此有趣的事情是，遗漏的错误：没有考虑是否一个类应该是 final ，这比另一种选择更糟糕。这里忽略一下优化，一个开始是 final 的类，之后就无法更改；这无法改变这个类目前是如何使用的，对于许多库发展问题，这是最好的答案: <strong>缺省情况应该是安全的</strong>，类的设计者可以选择以后更进取。</p>
+<hr>
+
+      
+    </div>
+    <footer>
+      
+        <div class="alignleft">
+            <a href="/2016/05/23/naturally-final-classes-in-swift/#more" class="more-link"><i class="fa fa-chevron-right"></i>查看全文</a>
+        </div>
+        
+        
+          <div class="alignright"> 
+            <a href="http://iJack.pw/2016/05/23/naturally-final-classes-in-swift/#comment" class="comment-link">
+              <i class="fa fa-comments"></i><span class="ds-thread-count" data-thread-key="/2016/05/23/naturally-final-classes-in-swift/">&nbsp;
+              </span>
+            </a>
+          </div>
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+      <time datetime="2016-05-19T02:52:20.000Z"><a href="/2016/05/18/hexo-auto-deploy/">Wed, May 18 2016, 10:52:20 pm</a></time>
+
+  
+    <h1 class="title"><a href="/2016/05/18/hexo-auto-deploy/">HEXO 自动部署</a></h1>
+  
+
+
+
+  
+  <div class="tags">
+  	<i class="fa fa-tag"></i>
+    <a href="/tags/HEXO/">HEXO</a>, <a href="/tags/NodeJS/">NodeJS</a>
+  </div>
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <p>用 hexo 有一阵子了，以前一直都是在本机做 <code>generation</code> 和 <code>deploy</code>，看到 github 有 webhooks 这样方便的API，所以就来给 HEXO 加个自动部署吧！</p>
+<p>自动部署是非常酷的，如果你不想在本机做冗长的 <code>generation</code> 和 <code>deploy</code> 的话。自动部署的情况下只需要在客户端向仓库传递源码即可，剩下的都由 server 来自动完成。</p>
+<p>hexo 默认会带一个 gitignore，所以用 git 保存 hexo 的源码非常的方便。</p>
+<p>所以我的部署方案是：源码放在 github 私有仓，站点挂在公开仓库的 <code>gh-pages</code> 分支上。</p>
+<p>需要 Server端与客户端 配置好 git、nodejs、hexo-cli 即可。 (一定要尽量保持版本一致性)</p>
+<p>如下是客户端部署的脚本:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#!/bin/bash</span></div><div class="line"></div><div class="line"><span class="built_in">echo</span> <span class="_">-e</span> <span class="string">"\033[32m [AUTO DEPLOY] git commit...  \033[0m"</span></div><div class="line">d=`date +%x-%T`</div><div class="line">git add .</div><div class="line">git commit -m <span class="string">"auto deploy at "</span><span class="variable">$&#123;d&#125;</span></div><div class="line"><span class="built_in">echo</span> <span class="_">-e</span> <span class="string">"\033[32m [AUTO DEPLOY] git push...  \033[0m"</span></div><div class="line">git push origin master</div><div class="line"><span class="built_in">echo</span> <span class="_">-e</span> <span class="string">"\033[32m [AUTO DEPLOY] git push finish! \033[0m"</span></div></pre></td></tr></table></figure>
+<p>记得加上执行权限 <code>chmod +x deploy.sh</code>.</p>
+<p>如下是 server端部署的脚本:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#!/bin/bash</span></div><div class="line"></div><div class="line"><span class="built_in">echo</span> <span class="_">-e</span> <span class="string">"\033[32m [AUTO SYNC] sync hexo start \033[0m"</span></div><div class="line"><span class="built_in">cd</span> /root/B<span class="built_in">log</span>/</div><div class="line"><span class="built_in">echo</span> <span class="_">-e</span> <span class="string">"\033[32m [AUTO SYNC] git pull...  \033[0m"</span></div><div class="line">git pull origin master</div><div class="line"><span class="built_in">echo</span> <span class="_">-e</span> <span class="string">"\033[32m [AUTO DEPLOY] hexo generate...  \033[0m"</span></div><div class="line">hexo g</div><div class="line"><span class="built_in">echo</span> <span class="_">-e</span> <span class="string">"\033[32m [AUTO DEPLOY] hexo deploy...  \033[0m"</span></div><div class="line">hexo d</div><div class="line"><span class="built_in">echo</span> <span class="_">-e</span> <span class="string">"\033[32m [AUTO DEPLOY] deploy hexo finish \033[0m"</span></div></pre></td></tr></table></figure>
+<p>同样，加上执行权限 <code>chmod +x deploy.sh</code>.</p>
+<p>然后用 nodejs 搭一个简易的 server 用来接收 github 发来的 push 通知，这里利用的是<a href="https://github.com/rvagg/github-webhook-handler" target="_blank" rel="external">github-webhook-handler</a>，具体可以读它的文档，如下即是文档中的示例稍加改动后的代码。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> http = <span class="built_in">require</span>(<span class="string">'http'</span>)</div><div class="line"><span class="keyword">var</span> exec = <span class="built_in">require</span>(<span class="string">'child_process'</span>).exec;</div><div class="line"><span class="keyword">var</span> createHandler = <span class="built_in">require</span>(<span class="string">'github-webhook-handler'</span>)</div><div class="line"><span class="keyword">var</span> handler = createHandler(&#123; <span class="attr">path</span>: <span class="string">'/webhook'</span>, <span class="attr">secret</span>: <span class="string">'********'</span> &#125;);</div><div class="line"></div><div class="line">http.createServer(<span class="function"><span class="keyword">function</span> (<span class="params">req, res</span>) </span>&#123;</div><div class="line">  handler(req, res, <span class="function"><span class="keyword">function</span> (<span class="params">err</span>) </span>&#123;</div><div class="line">    res.statusCode = <span class="number">404</span>;</div><div class="line">    res.end(<span class="string">'no such location'</span>);</div><div class="line">  &#125;);</div><div class="line">&#125;).listen(<span class="number">7777</span>);</div><div class="line"></div><div class="line">handler.on(<span class="string">'error'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">err</span>) </span>&#123;</div><div class="line">  <span class="built_in">console</span>.error(<span class="string">'Error:'</span>, err.message);</div><div class="line">&#125;);</div><div class="line"></div><div class="line">handler.on(<span class="string">'push'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">event</span>) </span>&#123;</div><div class="line">  <span class="built_in">console</span>.log(<span class="string">'Received a push event for %s to %s'</span>,</div><div class="line">    event.payload.repository.name,</div><div class="line">    event.payload.ref);</div><div class="line">    exec(<span class="string">'/root/Blog/sync.sh'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">err, stdout, stderr</span>)</span>&#123;</div><div class="line">    <span class="keyword">if</span>(err) &#123;</div><div class="line">      <span class="built_in">console</span>.log(<span class="string">'sync server err: '</span> + stderr);</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">      <span class="built_in">console</span>.log(stdout);</div><div class="line">    &#125;</div><div class="line">  &#125;);</div><div class="line">&#125;);</div></pre></td></tr></table></figure>
+<p>当然，这里可以启用<code>forever</code>来让这段代码在后台一直执行。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">npm install -g forever</div><div class="line">forever start server.js</div></pre></td></tr></table></figure>
+<p>当写完内容，想发布的时候只要执行<code>./deploy.sh</code>即可。</p>
+<p>That`s it!</p>
+<p><strong> Update: </strong></p>
+<p>当你有多个域名时，可以弄一个自动 pull 的 webhook 即可，服务端可以直接用 Apache.</p>
+<p>比如：<a href="http://iJack.pw">iJack.pw</a> <a href="http://jackalan.com" target="_blank" rel="external">JackAlan.com</a> <a href="http://JackyGao.com" target="_blank" rel="external">JackyGao.com</a> 这三个域名，第一个是搭在 github 仓库的 gh-pages 上的，后面两个部署在服务器 Apache 上。</p>
+<p>参考</p>
+<ul>
+<li><a href="https://developer.github.com/webhooks/" target="_blank" rel="external">webhooks</a></li>
+<li><a href="http://www.lovelucy.info/auto-deploy-website-by-webhooks-of-github-and-gitlab.html" target="_blank" rel="external">auto-deploy-website-by-webhooks-of-github-and-gitlab</a></li>
+</ul>
+
+      
+    </div>
+    <footer>
+      
+        <div class="alignleft">
+            <a href="/2016/05/18/hexo-auto-deploy/#more" class="more-link"><i class="fa fa-chevron-right"></i>查看全文</a>
+        </div>
+        
+        
+          <div class="alignright"> 
+            <a href="http://iJack.pw/2016/05/18/hexo-auto-deploy/#comment" class="comment-link">
+              <i class="fa fa-comments"></i><span class="ds-thread-count" data-thread-key="/2016/05/18/hexo-auto-deploy/">&nbsp;
+              </span>
+            </a>
+          </div>
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+      <time datetime="2016-04-26T08:54:50.000Z"><a href="/2016/04/26/ShangHai/">Tue, Apr 26 2016, 4:54:50 am</a></time>
+
+  
+    <h1 class="title"><a href="/2016/04/26/ShangHai/">ShangHai</a></h1>
+  
+
+
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <hr>
+<p>在上海逛了三天，感谢SwiftGG的大家，稳重的PPT、古怪精灵的Cee、萌萌哒蛋蛋、胖胖的帮主、不正经的小青、万人迷的Sai 还有星星老师、小狗老师 ……</p>
+<p>非常有幸能认识你们，大家在一起聊天、聚餐真的很开心。</p>
+
+      
+    </div>
+    <footer>
+      
+        <div class="alignleft">
+            <a href="/2016/04/26/ShangHai/#more" class="more-link"><i class="fa fa-chevron-right"></i>查看全文</a>
+        </div>
+        
+        
+          <div class="alignright"> 
+            <a href="http://iJack.pw/2016/04/26/ShangHai/#comment" class="comment-link">
+              <i class="fa fa-comments"></i><span class="ds-thread-count" data-thread-key="/2016/04/26/ShangHai/">&nbsp;
+              </span>
+            </a>
+          </div>
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+      <time datetime="2016-04-10T03:19:26.000Z"><a href="/2016/04/09/KVO的缺陷/">Sat, Apr 9 2016, 11:19:26 pm</a></time>
+
+  
+    <h1 class="title"><a href="/2016/04/09/KVO的缺陷/">KVO的缺陷</a></h1>
+  
+
+
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <hr>
+<p>最近用了一些KVO，发现KVO本身有不少缺点，如下列举一二:</p>
+<h2 id="糟糕的API"><a href="#糟糕的API" class="headerlink" title="糟糕的API"></a>糟糕的API</h2><p>KVO只有一个方法，也就是说很多时候不得不写一大坨代码来处理监听。如下是一个示例，代码如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">- (<span class="keyword">void</span>)observeValueForKeyPath:(<span class="built_in">NSString</span> *)keyPath ofObject:(<span class="keyword">id</span>)object change:(<span class="built_in">NSDictionary</span> *)change context:(<span class="keyword">void</span> *)context &#123;</div><div class="line">     <span class="keyword">if</span> (object == _view &amp;&amp; [keyPath isEqualToString:<span class="built_in">NSStringFromSelector</span>(<span class="keyword">@selector</span>(property))]) &#123; <span class="comment">// 确保KVO只响应需要的对象的属性</span></div><div class="line">        ...</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        [<span class="keyword">super</span> observeValueForKeyPath:keyPath ofObject:object change:change context:context]; <span class="comment">//父类也有可能需要监听</span></div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="父类和子类中同时存在KVO，有坑"><a href="#父类和子类中同时存在KVO，有坑" class="headerlink" title="父类和子类中同时存在KVO，有坑"></a>父类和子类中同时存在KVO，有坑</h2><p>父类和子类监听了同一个对象的同一个参数时，很容易出现父类在dealloc中remove了一次，子类又remove了一次的情况下。</p>
+<h2 id="依赖KVC，这种硬编码的方式，编译期无法检查错误"><a href="#依赖KVC，这种硬编码的方式，编译期无法检查错误" class="headerlink" title="依赖KVC，这种硬编码的方式，编译期无法检查错误"></a>依赖KVC，这种硬编码的方式，编译期无法检查错误</h2><p>如上的例子为了防止这一点使用了<code>NSStringFromSelector</code>来防止非法的属性，但是这只适用于单层的keyPath。</p>
+<p>比如想监听一个vc的持有的scrollView的属性就不能这么做了。 </p>
+<p>参考：</p>
+<p><a href="https://www.mikeash.com/pyblog/key-value-observing-done-right.html" target="_blank" rel="external">Key-Value Observing Done Right</a></p>
+
+      
+    </div>
+    <footer>
+      
+        <div class="alignleft">
+            <a href="/2016/04/09/KVO的缺陷/#more" class="more-link"><i class="fa fa-chevron-right"></i>查看全文</a>
+        </div>
+        
+        
+          <div class="alignright"> 
+            <a href="http://iJack.pw/2016/04/09/KVO的缺陷/#comment" class="comment-link">
+              <i class="fa fa-comments"></i><span class="ds-thread-count" data-thread-key="/2016/04/09/KVO的缺陷/">&nbsp;
+              </span>
+            </a>
+          </div>
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+      <time datetime="2016-03-25T17:18:34.000Z"><a href="/2016/03/25/浅谈iOS中的闭包（三) - ARC 对 Block 做了什么？/">Fri, Mar 25 2016, 1:18:34 pm</a></time>
+
+  
+    <h1 class="title"><a href="/2016/03/25/浅谈iOS中的闭包（三) - ARC 对 Block 做了什么？/">浅谈iOS中的闭包(三) - ARC 对 Block 做了什么？</a></h1>
+  
+
+
+
+  
+  <div class="tags">
+  	<i class="fa fa-tag"></i>
+    <a href="/tags/iOS/">iOS</a>, <a href="/tags/闭包/">闭包</a>
+  </div>
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <hr>
+<p>在 OC 中，Block 有如下三种类型：</p>
+<ul>
+<li>_NSConcreteGlobalBlock</li>
+<li>_NSConcreteStackBlock</li>
+<li>_NSConcreteMallocBlock</li>
+</ul>
+<p>如下是具体的描述</p>
+<ul>
+<li><p>_NSConcreteGlobalBlock 是全局的静态block，不会访问任何外部变量。这种不捕捉外界变量的block是不需要内存管理的,这种block不存在于Heap或是Stack而是作为代码片段存在,类似于C函数。</p>
+</li>
+<li><p>_NSConcreteStackBlock 保存在栈中的block，当函数返回时会被销毁。</p>
+</li>
+<li><p>_NSConcreteMallocBlock 保存在堆中的block，当引用计数为0时会被销毁。</p>
+</li>
+</ul>
+<p>在 MRC 下 block 在创建时是 stack 对象,如果我们需要在离开当前函数仍能够使用我们创建的 block 。我们就需要把它拷贝到堆上以便进行以引用计数为基础的内存管理。</p>
+<h3 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h3><p>Global</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">- (<span class="keyword">void</span>) viewDidLoad &#123;</div><div class="line">    <span class="built_in">NSLog</span>(<span class="string">@"%@"</span>,^&#123;</div><div class="line">        <span class="keyword">int</span> temp = <span class="number">10</span>;</div><div class="line">        printf(<span class="string">"%d\n"</span>,temp);</div><div class="line">    &#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>Stack</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">- (<span class="keyword">void</span>) viewDidLoad &#123;</div><div class="line">    <span class="keyword">int</span> temp = <span class="number">10</span>;</div><div class="line">    <span class="built_in">NSLog</span>(<span class="string">@"%@"</span>,^&#123;    </div><div class="line">        printf(<span class="string">"%d\n"</span>,temp);</div><div class="line">    &#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>Heap</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">- (<span class="keyword">void</span>) viewDidLoad &#123;</div><div class="line">    <span class="keyword">int</span> temp = <span class="number">10</span>;</div><div class="line">    <span class="built_in">NSLog</span>(<span class="string">@"%@"</span>,[^&#123;    </div><div class="line">        printf(<span class="string">"%d\n"</span>,temp);</div><div class="line">    &#125; <span class="keyword">copy</span>]);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="ARC做了什么？"><a href="#ARC做了什么？" class="headerlink" title="ARC做了什么？"></a>ARC做了什么？</h3><p>文档里是这么说的：</p>
+<blockquote>
+<p>With the exception of retains done as part of initializing a <strong>strong parameter variable or reading a </strong>weak variable, whenever these semantics call for retaining a value of block-pointer type, it has the effect of a Block_copy. The optimizer may remove such copies when it sees that the result is used only as an argument to a call.</p>
+</blockquote>
+<p>即在 ARC 下创建的 block 仍然是 _NSConcreteStackBlock 类型，当 block 被引用或返回时，ARC 帮助我们完成了 copy 和内存管理的工作。这种 block 变成了 _NSConcreteMallocBlock 类型。</p>
+
+      
+    </div>
+    <footer>
+      
+        <div class="alignleft">
+            <a href="/2016/03/25/浅谈iOS中的闭包（三) - ARC 对 Block 做了什么？/#more" class="more-link"><i class="fa fa-chevron-right"></i>查看全文</a>
+        </div>
+        
+        
+          <div class="alignright"> 
+            <a href="http://iJack.pw/2016/03/25/浅谈iOS中的闭包（三) - ARC 对 Block 做了什么？/#comment" class="comment-link">
+              <i class="fa fa-comments"></i><span class="ds-thread-count" data-thread-key="/2016/03/25/浅谈iOS中的闭包（三) - ARC 对 Block 做了什么？/">&nbsp;
+              </span>
+            </a>
+          </div>
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+      <time datetime="2016-03-17T15:00:18.000Z"><a href="/2016/03/17/ARC-naive/">Thu, Mar 17 2016, 11:00:18 am</a></time>
+
+  
+    <h1 class="title"><a href="/2016/03/17/ARC-naive/">浅谈iOS中的内存管理(五) - ARC中的Trick</a></h1>
+  
+
+
+
+  
+  <div class="tags">
+  	<i class="fa fa-tag"></i>
+    <a href="/tags/iOS/">iOS</a>, <a href="/tags/ARC/">ARC</a>, <a href="/tags/内存管理/">内存管理</a>
+  </div>
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <hr>
+<p>以前一直都以为 ARC 只是做了在编译期帮助开发者寻找合适的位置插入诸如 <code>release</code> <code>autorelease</code>这样的事情，不过看了一些资料以后，发现 ARC 似乎并不仅仅在编译期有优化，甚至在运行时期也有一些优化，优化的目的之一就是巧妙地跳过调用<code>autorelease</code>方法。这里做一下总结。</p>
+<p>正如前面几篇文章提到的那样，MRC 时代，如果一个方法创建了对象，然后 <code>return</code> 这个对象，那就需要手动调用对象的 <code>autorelease</code> 方法，以实现 <code>非自己生成的对象自己也能持有</code> 这样的需求。以前一直都以为编译器无非是在编译期帮我们找到了合适的位置插入 <code>autorelease</code>，但是现在看来，并不是这么简单，ARC 似乎更聪明一些。</p>
+<p>ARC 中有一个非常巧妙地运行时的优化方案用来跳过某些情况下 <code>autorelease</code>机制的调用，如下是大致的流程：</p>
+<p>当方法全部基于 ARC 实现时，在方法 return 的时候，ARC 会调用 <code>objc_autoreleaseReturnValue()</code> 替代 MRC 下的 <code>autorelease</code>。在 MRC 下想要 retain 的时候，ARC 会调用 <code>objc_retainAutoreleasedReturnValue()</code>。</p>
+<p>在调用 <code>objc_autoreleaseReturnValue()</code>时，会在栈上查询 return address 以确定 return value 是否会被传给 <code>objc_retainAutoreleasedReturnValue</code>。如果没传，说明返回值不能直接从提供方发送给接受方，这时就会调用 <code>autorelease</code>。反之，如果返回值能顺利地从提供方传送给接收方，那么就会跳过 <code>autorelease</code> 并修改 return address 以跳过 retain 的过程。</p>
+
+      
+    </div>
+    <footer>
+      
+        <div class="alignleft">
+            <a href="/2016/03/17/ARC-naive/#more" class="more-link"><i class="fa fa-chevron-right"></i>查看全文</a>
+        </div>
+        
+        
+          <div class="alignright"> 
+            <a href="http://iJack.pw/2016/03/17/ARC-naive/#comment" class="comment-link">
+              <i class="fa fa-comments"></i><span class="ds-thread-count" data-thread-key="/2016/03/17/ARC-naive/">&nbsp;
+              </span>
+            </a>
+          </div>
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+      <time datetime="2016-03-11T05:01:24.000Z"><a href="/2016/03/11/code-zen/">Fri, Mar 11 2016, 12:01:24 am</a></time>
+
+  
+    <h1 class="title"><a href="/2016/03/11/code-zen/">Code Zen</a></h1>
+  
+
+
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <hr>
+<p>我想，代码的精神所在，大概就是把 immutable/duplicate 的东西封装，把 mutable 的东西解耦。</p>
+<p>封装的东西可以是 class 可以是 model 也可以是 Block 这样的代码段。</p>
+<p>怎么才能寻找到被封装的内容？索引咯。</p>
+<p>对于字典，索引是 Key ；对于数组，索引是下标；对于更广泛的内容，索引是指针。</p>
+<p>或许可以这样说，比如OC中：用类和对象封装父类指针和方法列表，用映射来找到方法的代码片段。</p>
+
+      
+    </div>
+    <footer>
+      
+        <div class="alignleft">
+            <a href="/2016/03/11/code-zen/#more" class="more-link"><i class="fa fa-chevron-right"></i>查看全文</a>
+        </div>
+        
+        
+          <div class="alignright"> 
+            <a href="http://iJack.pw/2016/03/11/code-zen/#comment" class="comment-link">
+              <i class="fa fa-comments"></i><span class="ds-thread-count" data-thread-key="/2016/03/11/code-zen/">&nbsp;
+              </span>
+            </a>
+          </div>
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+      <time datetime="2016-03-10T21:32:21.000Z"><a href="/2016/03/10/copy-or-not/">Thu, Mar 10 2016, 4:32:21 pm</a></time>
+
+  
+    <h1 class="title"><a href="/2016/03/10/copy-or-not/">浅谈iOS中的闭包（二) - Copy Or Not?</a></h1>
+  
+
+
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <hr>
+<p>昨天突然被提及到了一个问题：<strong>Block</strong>的作为属性，应该是<code>copy</code> 还是 <code>strong</code>？(当然，原问题不是这个，出于某些原因吧。)</p>
+<p>很多人第一反应都是 <code>copy</code> 但是，我似乎在苹果的Tips上看到过，似乎<code>strong</code>也可以，所以只描述了一下堆栈拷贝流程，没敢确切的回答，回来翻了一下文档，果然，在 ARC 下都是可以的。</p>
+<p>ARC 下，之所以 <code>Block</code> 还使用 <code>copy</code> 是从 MRC 遗留下来的，在 MRC 中，方法内部的 <code>Block</code> 实在栈区的，使用 <code>copy</code> 可以把它放到堆区。其实在 ARC 下写不写都OK。因为编译器自动对 <code>Block</code> 进行了 <code>copy</code> 操作。(Swift 中变成了 逃逸性闭包与非逃逸性闭包，可以参考我以前的文章。) 我猜也许好多人还坚持要在 ARC 下写 <code>copy</code> 可能是在时刻提醒自己吧。这样就会不犯二去手动拷贝属性值。</p>
+<p>在 <code>property</code> 中 的<code>NSString, NSArray, NSDictionary</code> 使用 <code>copy</code> 比较常见，因为他们有对应的 <code>mutable</code>，为了确保这些不可变对象不会乱改变，所以应该在设置新属性的时候 <code>copy</code> 一份。</p>
+
+      
+    </div>
+    <footer>
+      
+        <div class="alignleft">
+            <a href="/2016/03/10/copy-or-not/#more" class="more-link"><i class="fa fa-chevron-right"></i>查看全文</a>
+        </div>
+        
+        
+          <div class="alignright"> 
+            <a href="http://iJack.pw/2016/03/10/copy-or-not/#comment" class="comment-link">
+              <i class="fa fa-comments"></i><span class="ds-thread-count" data-thread-key="/2016/03/10/copy-or-not/">&nbsp;
+              </span>
+            </a>
+          </div>
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+      <time datetime="2016-03-02T22:04:41.000Z"><a href="/2016/03/02/ARC-in-Swift/">Wed, Mar 2 2016, 5:04:41 pm</a></time>
+
+  
+    <h1 class="title"><a href="/2016/03/02/ARC-in-Swift/">浅谈iOS中的内存管理(四) - Swift中的ARC</a></h1>
+  
+
+
+
+  
+  <div class="tags">
+  	<i class="fa fa-tag"></i>
+    <a href="/tags/iOS/">iOS</a>, <a href="/tags/ARC/">ARC</a>, <a href="/tags/Swift/">Swift</a>, <a href="/tags/内存管理/">内存管理</a>
+  </div>
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <hr>
+<blockquote>
+<p>昨晚跟<a href="http://www.cnblogs.com/SproutFicF/" target="_blank" rel="external">张瑞鹏</a>谈起了Rust语言，其实一直对Rust语言充满了敬畏。Google了一下Rust vs Swift似乎也没什么靠谱的回答，可能二者目前区别不是很大。不过<a href="https://www.quora.com/Programming-Languages/What-are-the-differences-between-Rust-and-Swift" target="_blank" rel="external">Quora</a>上的一个回答引发了我的兴趣。</p>
+</blockquote>
+<p>这里撇开Swift中的即时编译、交互式编程，只关注内存管理这方面。(<a href="http://nondot.org/sabre" target="_blank" rel="external">Chris Lattner</a>在他的博客中也提到这两者特性只是他个人的一时兴起。)</p>
+<p><a href="https://www.quora.com/profile/Troy-Harvey-1" target="_blank" rel="external">Troy Harvey</a>说Rust的所有权系统(Ownership system)可以100%的防止内存泄露的发生，而Swift中使用的自动引用计数 98%可以杜绝内存泄露的发生(由于存在循环强引用)。</p>
+<p>这里就来探索Swift中的ARC与此前OC中的ARC发生了哪些改变？这里把重点放在如何在Swift中解决循环强引用。</p>
+<h3 id="无主引用-unowned-reference"><a href="#无主引用-unowned-reference" class="headerlink" title="无主引用 (unowned reference)"></a>无主引用 (unowned reference)</h3><p>在之前的三篇文章中，可以得知，在OC中<code>weak</code>可以用来破除两个强引用的循环引用。在Swift中，则又多了一个无主引用(unowned reference)。</p>
+<p>弱引用(weak reference)和无主引用(unowned reference)都允许循环引用中的某一个实例引用另外一个实例而不保持强引用，这样实例就能够互相引用而不会产生循环强引用的副作用。</p>
+<p>那么弱引用(weak reference)和无主引用(unowned reference)在Swift中又有什么区别呢？<strong>一般来说，对于在生命周期中会变为<code>nil</code>的实例使用弱引用(weak reference)。对于在初始化赋值后再也不会变为<code>nil</code>的实例，使用无主引用(unowned reference)。</strong></p>
+<p>无主引用永远都是有值的，这与弱引用不同。因此，无主引用总是被定义为非可选类型。可以在声明前加入<code>unowned</code>关键字以表示一个无主引用。</p>
+<p>由于无主引用是非可选类型，所以不需要在使用时将其展开。无主引用总是可以被直接访问。不过ARC无法在实例被销毁后将无主引用设为<code>nil</code>，因为非可选类型不允许被赋值为<code>nil</code>。</p>
+<p>文档中的一个例子如下：</p>
+<p>如下定义了<code>Customer</code>和<code>CreditCard</code>两个类，用于表示银行的客户和客户的信用卡。这两个类中，每一个都将另一个类的实例作为自身的属性。在这个数据模型中，有一点与其他循环强引用的例子不同：一个客户可能有或者没有信用卡，但是一张信用卡总是对应着一个确定的客户。为了表示这种关系，<code>Customer</code>类有一个可选类型的<code>card</code>属性，但是<code>CreditCard</code>类有一个非可选类型的<code>customer</code>属性。</p>
+<p>由于信用卡总是对应着一个客户，因此将<code>customer</code>属性定义为无主引用，</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Customer</span> </span>&#123;</div><div class="line">    <span class="keyword">let</span> name: <span class="type">String</span></div><div class="line">    <span class="keyword">var</span> card: <span class="type">CreditCard</span>?</div><div class="line">    <span class="keyword">init</span> (name: <span class="type">String</span>) &#123;</div><div class="line">        <span class="keyword">self</span>.name = name</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">deinit</span> &#123;</div><div class="line">        <span class="built_in">print</span>(<span class="string">"<span class="subst">\(name)</span> is being deinitialized."</span>)</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">CreditCard</span> </span>&#123;</div><div class="line">    <span class="keyword">let</span> number: <span class="type">UInt64</span></div><div class="line">    <span class="keyword">unowned</span> <span class="keyword">let</span> customer: <span class="type">Customer</span></div><div class="line">    <span class="keyword">init</span>(number: <span class="type">UInt64</span>, customer: <span class="type">Customer</span>) &#123;</div><div class="line">        <span class="keyword">self</span>.number = number</div><div class="line">        <span class="keyword">self</span>.customer = customer</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">deinit</span>&#123;</div><div class="line">        <span class="built_in">print</span>(<span class="string">"Card #<span class="subst">\(number)</span> is being deinitialized."</span>)</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>在这个模型中，<code>Customer</code>实例持有对<code>CreditCard</code>实例的强引用, 而<code>CreditCard</code>实例持有对<code>Customer</code>实例的无主引用。</p>
+<p>还有可能存在另一种场景：在这种场景中，两个属性都必须有值，并且初始化完成后永远不会为<code>nil</code>。在这种场景中，需要一个类使用无主属性，而另外一个类使用隐式解析可选属性。</p>
+<p>如下定义了<code>Country</code>和<code>City</code>两个类，在这个模型中，每个城市必须属于一个国家，每个国家必须有一个首都城市。</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Country</span> </span>&#123;</div><div class="line">    <span class="keyword">let</span> name: <span class="type">String</span></div><div class="line">    <span class="keyword">var</span> capitalCity: <span class="type">City</span>!</div><div class="line">    <span class="keyword">init</span>(name: <span class="type">String</span>, capitalName: <span class="type">String</span>)&#123;</div><div class="line">        <span class="keyword">self</span>.name = name</div><div class="line">        <span class="keyword">self</span>.capitalCity = <span class="type">City</span>(name: capitalName, country: <span class="keyword">self</span>)</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">City</span> </span>&#123;</div><div class="line">    <span class="keyword">let</span> name: <span class="type">String</span></div><div class="line">    <span class="keyword">unowned</span> <span class="keyword">let</span> country: <span class="type">Country</span></div><div class="line">    <span class="keyword">init</span>(name: <span class="type">String</span>, country: <span class="type">Country</span>) &#123;</div><div class="line">        <span class="keyword">self</span>.name = name</div><div class="line">        <span class="keyword">self</span>.country = country</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>Country</code>的构造函数调用了<code>City</code>的构造函数。然而只有<code>Country</code>的实例完全初始化完后， <code>Country</code>的构造函<br>数才能把<code>self</code>传给<code>City</code>的构造函数。为了满足这种需求，通过在类型结尾处加上感叹号(<code>City!</code>)的方式，将<code>Country</code>的<code>capitalCity</code>属性声明为隐式解析可选类型的属性。这表示像其他可选类型一样，<code>capitalCity</code>属性的默认值为<code>nil</code>，但是不需要展开它的值就能访问它。</p>
+<p>由于<code>capitalCity</code>默认值为<code>nil</code>，一旦<code>Country</code>的实例在构造函数中给<code>name</code>属性赋值后，整个初始化过程就完成了。这代表一旦<code>name</code>属性被赋值后，<code>Country</code>的构造函数就能引用并传递隐式的<code>self</code>。<code>Country</code>的构造函数在赋值<code>capitalCity</code>时，就能将<code>self</code>作为参数传递给<code>City</code>的构造函数。</p>
+<p>以上的意义在于你可以通过一条语句同时创建<code>Country</code>和<code>City</code>的实例，而不产生循环强引用，并且<code>capitalCity</code>的属性能被直接访问，而不需要通过感叹号来展开它的可选值。</p>
+<h3 id="闭包引起的循环引用"><a href="#闭包引起的循环引用" class="headerlink" title="闭包引起的循环引用"></a>闭包引起的循环引用</h3><p>当一个闭包被赋值给类实例的某个属性，并且这个闭包体中又使用了这个类实例时，也会出现循环引用。</p>
+<p>如下的例子用来展示一个由闭包引起的循环引用的发生：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">HTMLElement</span> </span>&#123;</div><div class="line">    <span class="keyword">let</span> name: <span class="type">String</span></div><div class="line">    <span class="keyword">let</span> text: <span class="type">String</span>?</div><div class="line">    <span class="built_in">lazy</span> <span class="keyword">var</span> asHTML: <span class="type">Void</span> -&gt; <span class="type">String</span> = &#123;</div><div class="line">        <span class="keyword">if</span> <span class="keyword">let</span> text = <span class="keyword">self</span>.text &#123;</div><div class="line">            <span class="keyword">return</span> <span class="string">"&lt;<span class="subst">\(<span class="keyword">self</span>.name)</span>&gt;<span class="subst">\(text)</span>&lt;/<span class="subst">\(<span class="keyword">self</span>.name)</span>&gt;"</span></div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            <span class="keyword">return</span> <span class="string">"&lt;<span class="subst">\(<span class="keyword">self</span>.name)</span> /&gt;"</span></div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">init</span>(name:<span class="type">String</span>, text:<span class="type">String</span>? = <span class="literal">nil</span>) &#123;</div><div class="line">        <span class="keyword">self</span>.name = name</div><div class="line">        <span class="keyword">self</span>.text = text</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">deinit</span> &#123;</div><div class="line">        <span class="built_in">print</span>(<span class="string">"<span class="subst">\(name)</span> is being deinitialized."</span>)</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这个例子中闭包在其闭包体内使用了<code>self</code>(引用了<code>self.name</code>和<code>self.tex
+t</code>)，因此闭包捕获了<code>self</code>，这意味着闭包又反过来持有了<code>HTMLElement</code>实例的强引用。这样两个对象就产生了循环强引用。</p>
+<blockquote>
+<p>Note: 虽然闭包多次使用了<code>self</code>，但它只捕获<code>HTMLElement</code>实例的一个强引用。</p>
+</blockquote>
+<p>Swift 中对此提供了一中优雅的解决方案叫做闭包捕获列表(<code>closuer capture list</code>)。</p>
+<p>定义捕获列表作为闭包的一部分，通过这种方式可以解决闭包和类实例之间的循环强引用。</p>
+<p>捕获列表定义了闭包体内捕获一个或者多个引用类型的规则。跟解决两个类实例间的循环强引用一样，可以声明每个捕<br>获的引用为弱引用或无主引用。</p>
+<blockquote>
+<p>Note: Swift 有如下要求：只要是在闭包内使用的成员，就要用<code>self.someProperty</code>或者<code>self.someMethod()</code> (而不只是<code>someProperty</code>或<code>someMethod</code>)。这提醒你可能会一不小心就捕获了<code>self</code>。</p>
+</blockquote>
+<p>于是，我们可以改造此前的<code>asHTML</code>闭包。</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">HTMLElement</span> </span>&#123;</div><div class="line">    <span class="keyword">let</span> name: <span class="type">String</span></div><div class="line">    <span class="keyword">let</span> text: <span class="type">String</span>?</div><div class="line">    <span class="built_in">lazy</span> <span class="keyword">var</span> asHTML: <span class="type">Void</span> -&gt; <span class="type">String</span> = &#123;</div><div class="line">        [<span class="keyword">unowned</span> <span class="keyword">self</span>] <span class="keyword">in</span></div><div class="line">        <span class="keyword">if</span> <span class="keyword">let</span> text = <span class="keyword">self</span>.text &#123;</div><div class="line">            <span class="keyword">return</span> <span class="string">"&lt;<span class="subst">\(<span class="keyword">self</span>.name)</span>&gt;<span class="subst">\(text)</span>&lt;/<span class="subst">\(<span class="keyword">self</span>.name)</span>&gt;"</span></div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            <span class="keyword">return</span> <span class="string">"&lt;<span class="subst">\(<span class="keyword">self</span>.name)</span> /&gt;"</span></div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">init</span>(name:<span class="type">String</span>, text:<span class="type">String</span>? = <span class="literal">nil</span>) &#123;</div><div class="line">        <span class="keyword">self</span>.name = name</div><div class="line">        <span class="keyword">self</span>.text = text</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">deinit</span> &#123;</div><div class="line">        <span class="built_in">print</span>(<span class="string">"<span class="subst">\(name)</span> is being deinitialized."</span>)</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>捕获列表常见的语法如下：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">lazy</span> <span class="keyword">var</span> someClosure: (<span class="type">Int</span>, <span class="type">String</span>) -&gt; <span class="type">String</span> = &#123;</div><div class="line">    [<span class="keyword">unowned</span> <span class="keyword">self</span>, <span class="keyword">weak</span> delegate = <span class="keyword">self</span>.delegate!] (index: <span class="type">Int</span>, stringToProcess: <span class="type">String</span>) -&gt; <span class="type">String</span> <span class="keyword">in</span></div><div class="line">    <span class="comment">// closure body goes here</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>如果闭包没有指明参数列表或者返回类型，则会通过上下文推断，那么可以把捕获列表和关键字<code>in</code>放在闭包最开始的地方:</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">lazy</span> <span class="keyword">var</span> someClosure: <span class="type">Void</span> -&gt; <span class="type">String</span> = &#123;</div><div class="line">    [<span class="keyword">unowned</span> <span class="keyword">self</span>, <span class="keyword">weak</span> delegate = <span class="keyword">self</span>.delegate!] <span class="keyword">in</span></div><div class="line">    <span class="comment">// closure body goes here</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer>
+      
+        <div class="alignleft">
+            <a href="/2016/03/02/ARC-in-Swift/#more" class="more-link"><i class="fa fa-chevron-right"></i>查看全文</a>
+        </div>
+        
+        
+          <div class="alignright"> 
+            <a href="http://iJack.pw/2016/03/02/ARC-in-Swift/#comment" class="comment-link">
+              <i class="fa fa-comments"></i><span class="ds-thread-count" data-thread-key="/2016/03/02/ARC-in-Swift/">&nbsp;
+              </span>
+            </a>
+          </div>
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+<nav id="pagination">
+  
+  
+    <a href="/page/2/" class="alignright next">下一页<i class="fa fa-long-arrow-right"></i></a>
+  
+  <div class="clearfix"></div>
+</nav>
+
+<script src="/js/jquery.anystretch.min.js"></script>
+<script src="/js/cover.js"></script>
+
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div>
+  
+  &copy; 2016 Jack Alan
+  
+</div>
+Powered by <a href="http://iJack.pw/" title="Jack Alan" target="_blank" rel="external">Jack Alan</a> and <a href="http://pages.github.com/" title="GitHub Pages" target="_blank" rel="external">GitHub Pages</a>
+
+<div class="clearfix"></div>
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3Ffe3ef7effe40ca4903cec1453f5c809f' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+ What ?
+<script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1254084718'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s95.cnzz.com/z_stat.php%3Fid%3D1254084718%26show%3Dpic' type='text/javascript'%3E%3C/script%3E"));</script>
+<OBJECT style="border: 0px" type="text/x-scriptlet" data="" width=0 Height=0 ></OBJECT>
+ </footer>
+  
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
+
+
+
+
+    <script type="text/javascript">
+        (function(){
+
+            $(window).scroll(function(){
+
+                var scrollTop = $(window).scrollTop();
+                if ( scrollTop >200 ){
+                    $("#main-nav").removeClass('normal_mode').addClass('top_mode');
+                } else{
+                    $("#main-nav").removeClass('top_mode').addClass('normal_mode');
+                }
+
+            });
+
+        })();
+    </script>
+
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript">
+  (function($){
+    $('.fancybox').fancybox({
+      'titlePosition': 'inside'
+    });
+  })(jQuery);
+  </script>
+
+
+
+    
+    <script type="text/javascript">
+      var duoshuoQuery = {short_name:"ijack"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.src = 'http://static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0] 
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+<script type="text/javascript">
+  
+  $(function(){
+
+    $('.title').hover(
+      function() {      
+        $(this).stop().animate(
+          {'marginLeft': '10px'}, 200
+        );   
+      }, 
+      function() {       
+        $(this).stop().animate({'marginLeft': '0px'}, 200);      
+      
+    });   
+
+  });
+
+</script>
+
+
+
+</body>
+</html>

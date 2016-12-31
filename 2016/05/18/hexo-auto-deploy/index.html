@@ -1,0 +1,289 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>HEXO 自动部署 | Jack Alan</title>
+  <meta name="author" content="Jack Alan">
+  
+  <meta name="description" content="用 hexo 有一阵子了，以前一直都是在本机做 generation 和 deploy，看到 github 有 webhooks 这样方便的API，所以就来给 HEXO 加个自动部署吧！
+自动部署是非常酷的，如果你不想在本机做冗长的 generation 和 deploy 的话。自动部署的情况下只需">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="HEXO 自动部署"/>
+  <meta property="og:site_name" content="Jack Alan"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.ico" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jack Alan" type="application/atom+xml">
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+<link rel="stylesheet" href="/css/style.css">
+  <script src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+
+<body>
+  <header id="header" class='normal_mode'>
+    <nav id="main-nav">
+  <ul class='container'>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+      <li><a href="/Books&Courses">Books &amp; Courses</a></li>
+    
+      <li><a href="/Links">Friends</a></li>
+    
+      <li><a href="/AboutMe">About</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+  </header>
+  <div id="content" class="container">
+    <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+      <time datetime="2016-05-19T02:52:20.000Z"><a href="/2016/05/18/hexo-auto-deploy/">Wed, May 18 2016, 10:52:20 pm</a></time>
+
+  
+    <h1 class="title">HEXO 自动部署</h1>
+  
+
+
+
+  
+  <div class="tags">
+  	<i class="fa fa-tag"></i>
+    <a href="/tags/HEXO/">HEXO</a>, <a href="/tags/NodeJS/">NodeJS</a>
+  </div>
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <p>用 hexo 有一阵子了，以前一直都是在本机做 <code>generation</code> 和 <code>deploy</code>，看到 github 有 webhooks 这样方便的API，所以就来给 HEXO 加个自动部署吧！</p>
+<p>自动部署是非常酷的，如果你不想在本机做冗长的 <code>generation</code> 和 <code>deploy</code> 的话。自动部署的情况下只需要在客户端向仓库传递源码即可，剩下的都由 server 来自动完成。</p>
+<p>hexo 默认会带一个 gitignore，所以用 git 保存 hexo 的源码非常的方便。</p>
+<p>所以我的部署方案是：源码放在 github 私有仓，站点挂在公开仓库的 <code>gh-pages</code> 分支上。</p>
+<p>需要 Server端与客户端 配置好 git、nodejs、hexo-cli 即可。 (一定要尽量保持版本一致性)</p>
+<p>如下是客户端部署的脚本:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#!/bin/bash</span></div><div class="line"></div><div class="line"><span class="built_in">echo</span> <span class="_">-e</span> <span class="string">"\033[32m [AUTO DEPLOY] git commit...  \033[0m"</span></div><div class="line">d=`date +%x-%T`</div><div class="line">git add .</div><div class="line">git commit -m <span class="string">"auto deploy at "</span><span class="variable">$&#123;d&#125;</span></div><div class="line"><span class="built_in">echo</span> <span class="_">-e</span> <span class="string">"\033[32m [AUTO DEPLOY] git push...  \033[0m"</span></div><div class="line">git push origin master</div><div class="line"><span class="built_in">echo</span> <span class="_">-e</span> <span class="string">"\033[32m [AUTO DEPLOY] git push finish! \033[0m"</span></div></pre></td></tr></table></figure>
+<p>记得加上执行权限 <code>chmod +x deploy.sh</code>.</p>
+<p>如下是 server端部署的脚本:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#!/bin/bash</span></div><div class="line"></div><div class="line"><span class="built_in">echo</span> <span class="_">-e</span> <span class="string">"\033[32m [AUTO SYNC] sync hexo start \033[0m"</span></div><div class="line"><span class="built_in">cd</span> /root/B<span class="built_in">log</span>/</div><div class="line"><span class="built_in">echo</span> <span class="_">-e</span> <span class="string">"\033[32m [AUTO SYNC] git pull...  \033[0m"</span></div><div class="line">git pull origin master</div><div class="line"><span class="built_in">echo</span> <span class="_">-e</span> <span class="string">"\033[32m [AUTO DEPLOY] hexo generate...  \033[0m"</span></div><div class="line">hexo g</div><div class="line"><span class="built_in">echo</span> <span class="_">-e</span> <span class="string">"\033[32m [AUTO DEPLOY] hexo deploy...  \033[0m"</span></div><div class="line">hexo d</div><div class="line"><span class="built_in">echo</span> <span class="_">-e</span> <span class="string">"\033[32m [AUTO DEPLOY] deploy hexo finish \033[0m"</span></div></pre></td></tr></table></figure>
+<p>同样，加上执行权限 <code>chmod +x deploy.sh</code>.</p>
+<p>然后用 nodejs 搭一个简易的 server 用来接收 github 发来的 push 通知，这里利用的是<a href="https://github.com/rvagg/github-webhook-handler" target="_blank" rel="external">github-webhook-handler</a>，具体可以读它的文档，如下即是文档中的示例稍加改动后的代码。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> http = <span class="built_in">require</span>(<span class="string">'http'</span>)</div><div class="line"><span class="keyword">var</span> exec = <span class="built_in">require</span>(<span class="string">'child_process'</span>).exec;</div><div class="line"><span class="keyword">var</span> createHandler = <span class="built_in">require</span>(<span class="string">'github-webhook-handler'</span>)</div><div class="line"><span class="keyword">var</span> handler = createHandler(&#123; <span class="attr">path</span>: <span class="string">'/webhook'</span>, <span class="attr">secret</span>: <span class="string">'********'</span> &#125;);</div><div class="line"></div><div class="line">http.createServer(<span class="function"><span class="keyword">function</span> (<span class="params">req, res</span>) </span>&#123;</div><div class="line">  handler(req, res, <span class="function"><span class="keyword">function</span> (<span class="params">err</span>) </span>&#123;</div><div class="line">    res.statusCode = <span class="number">404</span>;</div><div class="line">    res.end(<span class="string">'no such location'</span>);</div><div class="line">  &#125;);</div><div class="line">&#125;).listen(<span class="number">7777</span>);</div><div class="line"></div><div class="line">handler.on(<span class="string">'error'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">err</span>) </span>&#123;</div><div class="line">  <span class="built_in">console</span>.error(<span class="string">'Error:'</span>, err.message);</div><div class="line">&#125;);</div><div class="line"></div><div class="line">handler.on(<span class="string">'push'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">event</span>) </span>&#123;</div><div class="line">  <span class="built_in">console</span>.log(<span class="string">'Received a push event for %s to %s'</span>,</div><div class="line">    event.payload.repository.name,</div><div class="line">    event.payload.ref);</div><div class="line">    exec(<span class="string">'/root/Blog/sync.sh'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">err, stdout, stderr</span>)</span>&#123;</div><div class="line">    <span class="keyword">if</span>(err) &#123;</div><div class="line">      <span class="built_in">console</span>.log(<span class="string">'sync server err: '</span> + stderr);</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">      <span class="built_in">console</span>.log(stdout);</div><div class="line">    &#125;</div><div class="line">  &#125;);</div><div class="line">&#125;);</div></pre></td></tr></table></figure>
+<p>当然，这里可以启用<code>forever</code>来让这段代码在后台一直执行。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">npm install -g forever</div><div class="line">forever start server.js</div></pre></td></tr></table></figure>
+<p>当写完内容，想发布的时候只要执行<code>./deploy.sh</code>即可。</p>
+<p>That`s it!</p>
+<p><strong> Update: </strong></p>
+<p>当你有多个域名时，可以弄一个自动 pull 的 webhook 即可，服务端可以直接用 Apache.</p>
+<p>比如：<a href="http://iJack.pw">iJack.pw</a> <a href="http://jackalan.com" target="_blank" rel="external">JackAlan.com</a> <a href="http://JackyGao.com" target="_blank" rel="external">JackyGao.com</a> 这三个域名，第一个是搭在 github 仓库的 gh-pages 上的，后面两个部署在服务器 Apache 上。</p>
+<p>参考</p>
+<ul>
+<li><a href="https://developer.github.com/webhooks/" target="_blank" rel="external">webhooks</a></li>
+<li><a href="http://www.lovelucy.info/auto-deploy-website-by-webhooks-of-github-and-gitlab.html" target="_blank" rel="external">auto-deploy-website-by-webhooks-of-github-and-gitlab</a></li>
+</ul>
+
+      
+    </div>
+    <footer>
+      
+          
+<!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+  <span class="jiathis_txt">分享到：</span>
+  <a class="jiathis_button_weixin">微信</a>
+  <a class="jiathis_button_tsina">新浪微博</a>
+  <a class="jiathis_button_renren">人人网</a>
+  <a class="jiathis_button_qzone">QQ空间</a>
+  <a class="jiathis_button_douban">豆瓣</a>
+  <a class="jiathis_button_pocket">Pocket</a>
+  <a href="http://www.jiathis.com/share?uid=901656" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank">更多</a>
+  <a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript" src="http://v3.jiathis.com/code_mini/jia.js?uid=901656" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+          <div class="clearfix"></div>
+          <nav id="pagination">
+  
+    <a href="/2016/05/23/naturally-final-classes-in-swift/" class="alignleft prev"><i class="fa fa-long-arrow-left">上一页</i></a>
+  
+  
+    <a href="/2016/04/26/ShangHai/" class="alignright next">下一页<i class="fa fa-long-arrow-right"></i></a>
+  
+  <div class="clearfix"></div>
+</nav>
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">Kommentare</h1>
+
+  
+      <!-- Duoshuo Comment BEGIN -->
+<div class="ds-thread" data-thread-key="/2016/05/18/hexo-auto-deploy/"></div>
+<!-- Duoshuo Comment END -->
+  
+</section>
+
+
+
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div>
+  
+  &copy; 2016 Jack Alan
+  
+</div>
+Powered by <a href="http://iJack.pw/" title="Jack Alan" target="_blank" rel="external">Jack Alan</a> and <a href="http://pages.github.com/" title="GitHub Pages" target="_blank" rel="external">GitHub Pages</a>
+
+<div class="clearfix"></div>
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3Ffe3ef7effe40ca4903cec1453f5c809f' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+ What ?
+<script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1254084718'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s95.cnzz.com/z_stat.php%3Fid%3D1254084718%26show%3Dpic' type='text/javascript'%3E%3C/script%3E"));</script>
+<OBJECT style="border: 0px" type="text/x-scriptlet" data="" width=0 Height=0 ></OBJECT>
+ </footer>
+  
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
+
+
+
+
+    <script type="text/javascript">
+        (function(){
+
+            $(window).scroll(function(){
+
+                var scrollTop = $(window).scrollTop();
+                if ( scrollTop >200 ){
+                    $("#main-nav").removeClass('normal_mode').addClass('top_mode');
+                } else{
+                    $("#main-nav").removeClass('top_mode').addClass('normal_mode');
+                }
+
+            });
+
+        })();
+    </script>
+
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript">
+  (function($){
+    $('.fancybox').fancybox({
+      'titlePosition': 'inside'
+    });
+  })(jQuery);
+  </script>
+
+
+
+    
+    <script type="text/javascript">
+      var duoshuoQuery = {short_name:"ijack"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.src = 'http://static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0] 
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+<script type="text/javascript">
+  
+  $(function(){
+
+    $('.title').hover(
+      function() {      
+        $(this).stop().animate(
+          {'marginLeft': '10px'}, 200
+        );   
+      }, 
+      function() {       
+        $(this).stop().animate({'marginLeft': '0px'}, 200);      
+      
+    });   
+
+  });
+
+</script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,284 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>合理的使用 Swift 中的 final 类 | Jack Alan</title>
+  <meta name="author" content="Jack Alan">
+  
+  <meta name="description" content="你上一次在 Swift 中继承一个类是什么时候？而且这个类是你创建的但不是 Cocoa 体系中的一部分。在 protocol 扩展和一般的 extension 扩展存在的情况下，你多久继承一次非 Cocoa 类型的 class ？
+如果你的答案在 0% 和 5% 之间，你是相当具有代表性的。在 Sw">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="合理的使用 Swift 中的 final 类"/>
+  <meta property="og:site_name" content="Jack Alan"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.ico" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jack Alan" type="application/atom+xml">
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+<link rel="stylesheet" href="/css/style.css">
+  <script src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+
+<body>
+  <header id="header" class='normal_mode'>
+    <nav id="main-nav">
+  <ul class='container'>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+      <li><a href="/Books&Courses">Books &amp; Courses</a></li>
+    
+      <li><a href="/Links">Friends</a></li>
+    
+      <li><a href="/AboutMe">About</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+  </header>
+  <div id="content" class="container">
+    <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+      <time datetime="2016-05-24T02:36:42.000Z"><a href="/2016/05/23/naturally-final-classes-in-swift/">Mon, May 23 2016, 10:36:42 pm</a></time>
+
+  
+    <h1 class="title">合理的使用 Swift 中的 final 类</h1>
+  
+
+
+
+  
+  <div class="tags">
+  	<i class="fa fa-tag"></i>
+    <a href="/tags/iOS/">iOS</a>, <a href="/tags/Swift/">Swift</a>, <a href="/tags/翻译/">翻译</a>
+  </div>
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <p>你上一次在 Swift 中继承一个类是什么时候？而且这个类是你创建的但不是 Cocoa 体系中的一部分。在 protocol 扩展和一般的 extension 扩展存在的情况下，你多久继承一次非 Cocoa 类型的 class ？</p>
+<p>如果你的答案在 0% 和 5% 之间，你是相当具有代表性的。在 Swift 的类型体系中，引用类型不再使用继承来紧密耦合了。</p>
+<p>进一步来说，你多久创建一次类和子类带着这样的意图：他们将来会被继承，通过一个特定模块之外的 API 客户端。(假设，当然，你不是 Apple，并且你没有在写 view 和 controller)。</p>
+<p>当继承成为例外而不是规则，是时候考虑默认创建 final 类？或者将模块封装为 <code>internal-by-default</code> 更好？这样公开类在原模块外就不能被继承。</p>
+<p>辩论目前如火如荼的展开在 Swift 进度列表中，关于这如何进行，以及是否应该这么做，是否类应该被设计为强制调用父类以重写方法(需要上层调用)。</p>
+<p>John McCall 写道：</p>
+<hr>
+<p>我们目前的意图是，公开的继承和重写将被锁定为默认，但是内部的继承和重写不会。我认为这达到了平衡，此外，这与一般语言的代码演进是一致的，通过以下几种方式将促进 “无副作用” 迅速发展：</p>
+<p>(1) 避免手工管理的障碍，当你正在 hack 一个模块最初的实现代码，但是<br>(2) 不会让最初的实现代码在内部隐源，并且二进制兼容允许模块之外的代码，以及<br>(3) 提供良好的语言工具，来逐渐的把那些最初的原型接口构建为更强的内部抽象。</p>
+<p>所有默认行为的硬限制都维系在模块边界上，因为我们假定，当你之前犯了一个错误的决定，这能直接的在模块内部修复任何问题。</p>
+<p>所以，okay，默认一个类是可继承的，并且不是真的这样设计的，现在模块中有一些子类，这导致了一些问题。只要没人改变缺省情况 (他们本可以无所顾忌的在任何情况下做，但如果只需要一个外部的子类，那就不太可能去做)，所有这些子类仍是模块内的，你仍然有自由的控制权，以纠正最初的错误设计。</p>
+<hr>
+<p>Joe Groff 的想法：</p>
+<hr>
+<p>强大的子类化能力要求有意识的设计，就像 API 设计的其他所有方面一样。</p>
+<hr>
+<p>Jordan Rose:</p>
+<hr>
+<p>关于此有趣的事情是，遗漏的错误：没有考虑是否一个类应该是 final ，这比另一种选择更糟糕。这里忽略一下优化，一个开始是 final 的类，之后就无法更改；这无法改变这个类目前是如何使用的，对于许多库发展问题，这是最好的答案: <strong>缺省情况应该是安全的</strong>，类的设计者可以选择以后更进取。</p>
+<hr>
+
+      
+    </div>
+    <footer>
+      
+          
+<!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+  <span class="jiathis_txt">分享到：</span>
+  <a class="jiathis_button_weixin">微信</a>
+  <a class="jiathis_button_tsina">新浪微博</a>
+  <a class="jiathis_button_renren">人人网</a>
+  <a class="jiathis_button_qzone">QQ空间</a>
+  <a class="jiathis_button_douban">豆瓣</a>
+  <a class="jiathis_button_pocket">Pocket</a>
+  <a href="http://www.jiathis.com/share?uid=901656" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank">更多</a>
+  <a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript" src="http://v3.jiathis.com/code_mini/jia.js?uid=901656" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+          <div class="clearfix"></div>
+          <nav id="pagination">
+  
+    <a href="/2016/06/08/let-it-throw/" class="alignleft prev"><i class="fa fa-long-arrow-left">上一页</i></a>
+  
+  
+    <a href="/2016/05/18/hexo-auto-deploy/" class="alignright next">下一页<i class="fa fa-long-arrow-right"></i></a>
+  
+  <div class="clearfix"></div>
+</nav>
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">Kommentare</h1>
+
+  
+      <!-- Duoshuo Comment BEGIN -->
+<div class="ds-thread" data-thread-key="/2016/05/23/naturally-final-classes-in-swift/"></div>
+<!-- Duoshuo Comment END -->
+  
+</section>
+
+
+
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div>
+  
+  &copy; 2016 Jack Alan
+  
+</div>
+Powered by <a href="http://iJack.pw/" title="Jack Alan" target="_blank" rel="external">Jack Alan</a> and <a href="http://pages.github.com/" title="GitHub Pages" target="_blank" rel="external">GitHub Pages</a>
+
+<div class="clearfix"></div>
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3Ffe3ef7effe40ca4903cec1453f5c809f' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+ What ?
+<script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1254084718'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s95.cnzz.com/z_stat.php%3Fid%3D1254084718%26show%3Dpic' type='text/javascript'%3E%3C/script%3E"));</script>
+<OBJECT style="border: 0px" type="text/x-scriptlet" data="" width=0 Height=0 ></OBJECT>
+ </footer>
+  
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
+
+
+
+
+    <script type="text/javascript">
+        (function(){
+
+            $(window).scroll(function(){
+
+                var scrollTop = $(window).scrollTop();
+                if ( scrollTop >200 ){
+                    $("#main-nav").removeClass('normal_mode').addClass('top_mode');
+                } else{
+                    $("#main-nav").removeClass('top_mode').addClass('normal_mode');
+                }
+
+            });
+
+        })();
+    </script>
+
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript">
+  (function($){
+    $('.fancybox').fancybox({
+      'titlePosition': 'inside'
+    });
+  })(jQuery);
+  </script>
+
+
+
+    
+    <script type="text/javascript">
+      var duoshuoQuery = {short_name:"ijack"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.src = 'http://static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0] 
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+<script type="text/javascript">
+  
+  $(function(){
+
+    $('.title').hover(
+      function() {      
+        $(this).stop().animate(
+          {'marginLeft': '10px'}, 200
+        );   
+      }, 
+      function() {       
+        $(this).stop().animate({'marginLeft': '0px'}, 200);      
+      
+    });   
+
+  });
+
+</script>
+
+
+
+</body>
+</html>

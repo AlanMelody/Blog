@@ -1,0 +1,1120 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Seite 2 | Jack Alan</title>
+  <meta name="author" content="Jack Alan">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+  <meta property="og:site_name" content="Jack Alan"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.ico" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jack Alan" type="application/atom+xml">
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+<link rel="stylesheet" href="/css/style.css">
+  <script src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+
+<body>
+  <header id="header" class='normal_mode'>
+    <nav id="main-nav">
+  <ul class='container'>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+      <li><a href="/Books&Courses">Books &amp; Courses</a></li>
+    
+      <li><a href="/Links">Friends</a></li>
+    
+      <li><a href="/AboutMe">About</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+  </header>
+  <div id="content" class="container">
+    <div id="cover">
+	<div id="profile" alt="http://115.28.103.52/bingimage/bing.php">
+		<a href="/">
+			<div class="logo">
+				<img src="/logo.png" alt="Profile Picture">
+			</div>
+			<div id="title">Jack Alan</div>
+		</a>
+
+		
+		 <ul class="my-socials">
+  
+  <li>
+  	<a href="https://github.com/AlanMelody" class="github" target="_blank">
+  		<i class="fa fa-github"></i>
+  	</a>
+  </li>
+  
+  <li>
+  	<a href="http://weibo.com/iAlanMelody" class="weibo" target="_blank">
+  		<i class="fa fa-weibo"></i>
+  	</a>
+  </li>
+  
+ 
+ <li>
+   	<a href="mailto:jack@iJack.pw" class="email" target="_blank" title="Email Me">
+  		<i class="fa fa-envelope"></i>
+  	</a>
+ </li>
+ 
+</ul>
+	</div>
+</div>
+
+
+  <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+      <time datetime="2016-03-02T22:04:26.000Z"><a href="/2016/03/02/struct-vs-class-in-swift/">Wed, Mar 2 2016, 5:04:26 pm</a></time>
+
+  
+    <h1 class="title"><a href="/2016/03/02/struct-vs-class-in-swift/">Swift中的结构体与类</a></h1>
+  
+
+
+
+  
+  <div class="tags">
+  	<i class="fa fa-tag"></i>
+    <a href="/tags/iOS/">iOS</a>, <a href="/tags/Swift/">Swift</a>
+  </div>
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <hr>
+<p>在学C++时，老师经常会问的一个问题就是：类和结构体有什么区别啊？</p>
+<p>在学操作系统之前，这两者似乎除了一些默认权限上的不同也没有什么太明显的区别。</p>
+<p>今天我们来聊聊在Swift中的结构体和类，Swift中的类和结构体的运用有着明显的区别，通过一番探赜，体会到了为什么Swift是一门更安全的语言。</p>
+<p>(如下的讨论只针对Swift中的类和结构体，其他语言中不一定完全适用。)</p>
+<h3 id="共性与不同"><a href="#共性与不同" class="headerlink" title="共性与不同"></a>共性与不同</h3><p>结构体和类有很多共性，在C语言中之所以也可以使用面向对象的编程思想就是因为结构体和函数指针的存在。在Swift中它们之间有如下共性：</p>
+<ul>
+<li>都可以定义属性用于存储值</li>
+<li>都可以使用下标来提供值访问</li>
+<li>都可以定义方法</li>
+<li>都可以定义构造器</li>
+<li>都可以写extension</li>
+<li>都可以实现协议</li>
+</ul>
+<p>不过，似乎类的功能更多一些，比如</p>
+<ul>
+<li>类可以使用继承</li>
+<li>引用计数允许一个类的多次引用</li>
+<li>类的实例可以释放其分配的资源</li>
+<li>类的实例可以在运行时得知其类型</li>
+</ul>
+<p>在OC中，<code>NSString</code>，<code>NSArray</code>和<code>NSDictionary</code>类型都是类类型，而Swift中的<code>String</code>，<code>Array</code>和<code>Dictionary</code>都是结构体。</p>
+<p>一般来说结构体和枚举都是值类型，而类是引用类型。也就是说，在OC中诸如<code>NSString</code>这些类型作为参数被传入时不会发生值拷贝,而是传递现有实例的引用，而在Swift中它们的值会被拷贝。当然Swift的文档中也提到了：Swift在幕后只在绝对必要的情况下才会做出值拷贝。Swift 会管理所有的值拷贝以确保性能最优化,所以没必要回避赋值以保证性能最优化。</p>
+<p>可能你会问，为什么要这么做？参考了一下<a href="http://stackoverflow.com/questions/29589007/what-are-the-benefits-of-an-immutable-struct-over-a-mutable-one" target="_blank" rel="external">stackoverflow</a>里面的讨论。由于struct是值类型，所以有着不可变的特性。而 Swift 恰恰追求的是线程安全，不可变性极大的有助于线程安全。这也是Swift在方便性与安全性上的一种妥协。</p>
+<p>所以，至此也不难理解为什么<a href="https://swift.org/about/" target="_blank" rel="external">Swift官网</a>中关于Swift Feature的描述中第一条就是<strong>Safe</strong>。简单的来说就是：一时的方便可能会为今后的维护留下隐患。</p>
+<h3 id="用途"><a href="#用途" class="headerlink" title="用途"></a>用途</h3><p>结构体实例总是通过值传递，类实例总是通过引用传递。这意味两者适用不同的任务。所以如何选择就成为了一个问题。参考了Apple官方的文档以及他人的资料，总结如下：</p>
+<p>当符合一条或多条以下条件时，建议使用结构体：</p>
+<ul>
+<li>该数据结构用来封装少量简单的数据值。</li>
+<li>该数据结构的实例在被传递时，明确的需要使用值传递。</li>
+<li>该数据结构中所存储的值类型属性也应该被拷贝而不是引用传递时。</li>
+<li>该数据结构不需要继承另一个已有类型的属性。</li>
+</ul>
+<p>举例来说，以下情况适合使用结构体：</p>
+<ul>
+<li>几何形状，封装<code>width</code> <code>height</code>属性。</li>
+<li>三位坐标系内的一点，封装<code>x</code> <code>y</code> <code>z</code>属性。</li>
+</ul>
+<p>除此外，大多数情况下自定义的数据结构的构造都应该是类。</p>
+
+      
+    </div>
+    <footer>
+      
+        <div class="alignleft">
+            <a href="/2016/03/02/struct-vs-class-in-swift/#more" class="more-link"><i class="fa fa-chevron-right"></i>查看全文</a>
+        </div>
+        
+        
+          <div class="alignright"> 
+            <a href="http://iJack.pw/2016/03/02/struct-vs-class-in-swift/#comment" class="comment-link">
+              <i class="fa fa-comments"></i><span class="ds-thread-count" data-thread-key="/2016/03/02/struct-vs-class-in-swift/">&nbsp;
+              </span>
+            </a>
+          </div>
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+      <time datetime="2016-03-01T21:55:16.000Z"><a href="/2016/03/01/Swift中的逃逸闭包与自动闭包/">Tue, Mar 1 2016, 4:55:16 pm</a></time>
+
+  
+    <h1 class="title"><a href="/2016/03/01/Swift中的逃逸闭包与自动闭包/">浅谈iOS中的闭包(二) - Swift中的逃逸闭包与自动闭包</a></h1>
+  
+
+
+
+  
+  <div class="tags">
+  	<i class="fa fa-tag"></i>
+    <a href="/tags/iOS/">iOS</a>, <a href="/tags/Swift/">Swift</a>, <a href="/tags/闭包/">闭包</a>
+  </div>
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <h3 id="非逃逸闭包与逃逸闭包-Nonescaping-Closures-vs-Escaping-Closures"><a href="#非逃逸闭包与逃逸闭包-Nonescaping-Closures-vs-Escaping-Closures" class="headerlink" title="非逃逸闭包与逃逸闭包(Nonescaping Closures vs Escaping Closures)"></a>非逃逸闭包与逃逸闭包(Nonescaping Closures vs Escaping Closures)</h3><p>当闭包作为函数的参数传入时，很有可能这个闭包在函数返回之后才会被执行，这就是逃逸闭包。</p>
+<p>在Swift中可以在参数名前标注<code>@noescape</code>来指明这个闭包是不允许逃逸出这个函数的。因为非逃逸闭包只能在函数体中被执行，不能脱离函数体执行，所以这使得编译器可以明确的知道运行时的上下文环境，进而做出优化。</p>
+<p>比如，<code>sort(_:)</code>方法可以接受一个用于元素比较的闭包参数，它被指明为<code>@noescape</code>，因为排序结束后这个闭包就没用了。</p>
+<p>一般情况下，一些异步函数会使用逃逸闭包。这类函数会在异步操作开始之后立刻返回，但是闭包直到异步操作结束后才会被调用。比如网络请求中处理服务器返回请求的闭包。在这种情况下，逃逸闭包就可以派上用场了。一个常见的例子如下：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> handlers: [() -&gt; <span class="type">Void</span>] = []</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">func</span> <span class="title">functionWithEscapingClosure</span><span class="params">(handler: <span class="params">()</span></span></span> -&gt; <span class="type">Void</span>) &#123;</div><div class="line">    handlers.append(handler)</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>因为编译器知晓非逃逸闭包的上下文环境，所以非逃逸闭包中可以不写<code>self</code>。</p>
+<p>比如：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span> </span>&#123;</div><div class="line">    <span class="keyword">var</span> x</div><div class="line">    <span class="function"><span class="keyword">func</span> <span class="title">doSometing</span></span>&#123;</div><div class="line">        functionWithEscapingClosure &#123; x = <span class="number">250</span> &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="自动闭包"><a href="#自动闭包" class="headerlink" title="自动闭包"></a>自动闭包</h3><p>自动闭包，顾名思义是一种自动创建的闭包，用于包装函数参数的表达式，可以说是一种简便语法。</p>
+<p>自动闭包不接受任何参数，被调用时会返回被包装在其中的表达式的值。</p>
+<p>自动闭包的好处之二是让你能够延迟求值,因为代码段不会被执行直到你调用这个闭包，这样你就可以控制代码什么时候执行。</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> students = [<span class="string">"A"</span>, <span class="string">"B"</span>, <span class="string">"C"</span>]</div><div class="line"></div><div class="line"><span class="keyword">let</span> studentsProvider = &#123; students.removeAtIndex(<span class="number">0</span>) &#125;</div><div class="line"></div><div class="line">studentsProvider()</div></pre></td></tr></table></figure>
+<p>尽管调用了<code>removeAtIndex()</code>方法，但是此时并不会执行，知道第三行调用了这个闭包方法。</p>
+<p>这里注意<code>studentsProvider</code>与<code>studentsProvider()</code>二者的不同，前者的类型是<code>()-&gt;String</code>指向了一个函数，后者的类型是<code>String</code>。</p>
+<h4 id="autoclosure"><a href="#autoclosure" class="headerlink" title="@autoclosure"></a>@autoclosure</h4><p>当闭包作为函数参数时，可以将参数标记<code>@autoclosure</code>来接收自动闭包。<code>@autoclosure</code>暗含了非逃逸闭包的特性，如果你想让这个自动闭包具有逃逸的特性需要更改标记为<code>@autoclosure(escaping)</code>。</p>
+
+      
+    </div>
+    <footer>
+      
+        <div class="alignleft">
+            <a href="/2016/03/01/Swift中的逃逸闭包与自动闭包/#more" class="more-link"><i class="fa fa-chevron-right"></i>查看全文</a>
+        </div>
+        
+        
+          <div class="alignright"> 
+            <a href="http://iJack.pw/2016/03/01/Swift中的逃逸闭包与自动闭包/#comment" class="comment-link">
+              <i class="fa fa-comments"></i><span class="ds-thread-count" data-thread-key="/2016/03/01/Swift中的逃逸闭包与自动闭包/">&nbsp;
+              </span>
+            </a>
+          </div>
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+      <time datetime="2016-02-22T04:24:41.000Z"><a href="/2016/02/21/onMyOwn/">Sun, Feb 21 2016, 11:24:41 pm</a></time>
+
+  
+    <h1 class="title"><a href="/2016/02/21/onMyOwn/">做点什么</a></h1>
+  
+
+
+
+  
+  <div class="tags">
+  	<i class="fa fa-tag"></i>
+    <a href="/tags/碎碎念/">碎碎念</a>
+  </div>
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <hr>
+<p>Nothing lasts, not for ever. Not laughter, not lust, not even life itself. Which is why we make the most of what we have.</p>
+<p>Why waste a life in search of an epitaph? Fondly remembered. Who other than a halfwit has that chiselled above his head? It is nothing but sentimental incontinence. Face facts, life is a zero-sum game and politics is how we decide who wins, who loses. And, whether we like it or not, we are all players.</p>
+<p>最近看了之前一直想看的纸牌屋，不仅仅是美剧，也买了Kindle版。</p>
+<p>疯了一样的故事一个接着一个，书里都是江湖气，是一个我们从来没见过，甚至没听过的江湖。</p>
+<p>不过，</p>
+<p>任何人，在奋斗时总是一个人，终归只能是一个人。或排兵布阵，或结盟反击，都是你一个人完成，灵魂终究是独立的。</p>
+<p>在这时候，如果你没有饱满而强大的灵魂，就不妨退回到人群中。</p>
+
+      
+    </div>
+    <footer>
+      
+        <div class="alignleft">
+            <a href="/2016/02/21/onMyOwn/#more" class="more-link"><i class="fa fa-chevron-right"></i>查看全文</a>
+        </div>
+        
+        
+          <div class="alignright"> 
+            <a href="http://iJack.pw/2016/02/21/onMyOwn/#comment" class="comment-link">
+              <i class="fa fa-comments"></i><span class="ds-thread-count" data-thread-key="/2016/02/21/onMyOwn/">&nbsp;
+              </span>
+            </a>
+          </div>
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+      <time datetime="2016-01-21T02:36:45.000Z"><a href="/2016/01/20/首届Swift开发者大会/">Wed, Jan 20 2016, 9:36:45 pm</a></time>
+
+  
+    <h1 class="title"><a href="/2016/01/20/首届Swift开发者大会/">首届Swift开发者大会见闻</a></h1>
+  
+
+
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <hr>
+<p>比较慵懒，两周以后才想起来写个总结。</p>
+<p>第一次参加这种程序员的集会，学到了很多，先说说技能方面的收获吧。</p>
+<h2 id="Chris"><a href="#Chris" class="headerlink" title="Chris"></a>Chris</h2><p>「Talk is cheap, show me your code.」</p>
+<p>Chris 以身作则用实践证明了这句话。Chris展示了重构一个小游戏的过程，如下是他讲的一些<strong>Tips</strong>：</p>
+<ul>
+<li>使用 typealias 去掉 NSUserDefault 的依赖</li>
+<li>用protocol代替继承</li>
+<li>用extension实现protocol</li>
+<li>使用struct来抽象model层</li>
+</ul>
+<h2 id="喵神"><a href="#喵神" class="headerlink" title="喵神"></a>喵神</h2><p>喵神讲的是「如何打造一个让人愉快的框架」，思路非常清晰，对于我这种刚刚想写一个framework的菜鸟来说，真的是雪中送炭。</p>
+<h2 id="函数式编程"><a href="#函数式编程" class="headerlink" title="函数式编程"></a>函数式编程</h2><p>好几位嘉宾都讲了函数式编程的一些概念，这里总结一下吧。</p>
+<p>Monad 确实是一个不太好懂的概念。不过大多数的疑问都集中于在什么地方使用RAC或RxSwift比较合适，看了唐巧的博客，总结如下：</p>
+<ul>
+<li>刷新的业务逻辑，当触发点是多种的时候，业务往往会变得很复杂，用 delegate、notification、observe 混用，难以统一。这时用 RAC 可以保证上层的高度一致性，从而简化逻辑上分层。</li>
+<li>网络库，因为数据是在一定时间后才返回回来，不是立刻就返回的。</li>
+<li>UI操作，连续的动作与动画部分，例如某些控件跟随滚动。</li>
+</ul>
+<p>时间有点久了，待我看看全程视频会议一波，嘿嘿嘿。</p>
+
+      
+    </div>
+    <footer>
+      
+        <div class="alignleft">
+            <a href="/2016/01/20/首届Swift开发者大会/#more" class="more-link"><i class="fa fa-chevron-right"></i>查看全文</a>
+        </div>
+        
+        
+          <div class="alignright"> 
+            <a href="http://iJack.pw/2016/01/20/首届Swift开发者大会/#comment" class="comment-link">
+              <i class="fa fa-comments"></i><span class="ds-thread-count" data-thread-key="/2016/01/20/首届Swift开发者大会/">&nbsp;
+              </span>
+            </a>
+          </div>
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+      <time datetime="2016-01-20T20:30:53.000Z"><a href="/2016/01/20/iOS设计模式之委托与协议/">Wed, Jan 20 2016, 3:30:53 pm</a></time>
+
+  
+    <h1 class="title"><a href="/2016/01/20/iOS设计模式之委托与协议/">浅谈iOS设计模式之委托与协议</a></h1>
+  
+
+
+
+  
+  <div class="tags">
+  	<i class="fa fa-tag"></i>
+    <a href="/tags/iOS/">iOS</a>, <a href="/tags/设计模式/">设计模式</a>
+  </div>
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <hr>
+<p>委托模式<code>delegate</code>是Cocoa中十分常见的设计模式，通常使用协议<code>protocol</code>来实现。</p>
+<p>使用delegate就可以让单继承的子类实现父类之外的方法，这与Java中的接口机制非常类似。</p>
+<p>或者可以说一个类想实现某些操作，它可以把这些操作的实施细节委托给另外一个类来完成。</p>
+<p>一个简单的例子如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">@protocol</span> <span class="title">PrintDelegate</span> &lt;<span class="title">NSObject</span>&gt;</span></div><div class="line">- (<span class="keyword">void</span>)print;</div><div class="line"><span class="keyword">@end</span></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">AClass</span> : <span class="title">NSObject</span>&lt;<span class="title">PrintDelegate</span>&gt;</span></div><div class="line"><span class="keyword">@property</span> <span class="keyword">id</span>&lt;PrintDelegate&gt; delegate;</div><div class="line"><span class="keyword">@end</span></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">AClass</span></span></div><div class="line"></div><div class="line">-(<span class="keyword">void</span>)sayHello &#123;</div><div class="line">    [<span class="keyword">self</span>.delegate print];</div><div class="line">&#125;</div><div class="line"></div><div class="line">-(<span class="keyword">void</span>)print &#123;</div><div class="line">    <span class="built_in">NSLog</span>(<span class="string">@"Do Print"</span>);</div><div class="line">&#125;</div><div class="line"><span class="keyword">@end</span></div><div class="line"></div><div class="line"><span class="comment">// 使用 AClass</span></div><div class="line"><span class="keyword">int</span> main(<span class="keyword">int</span> argc, <span class="keyword">const</span> <span class="keyword">char</span> * argv[]) &#123;</div><div class="line">    <span class="keyword">@autoreleasepool</span> &#123;</div><div class="line">        AClass * a = [AClass new];</div><div class="line">        a.delegate = a;</div><div class="line">        [a sayHello];</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这里对象a的delegate可以设置为任何实现了<code>PrintDelegate</code>协议的对象。</p>
+<p>一个常见的应用场景，AView中包含了BView，而BView需要修改AView的界面，大致的步骤如下：</p>
+<ul>
+<li>定义一个协议，在AView中实现协议的方法</li>
+<li>BView中设置一个委托变量</li>
+<li>把BView的委托变量设置为AView，就是BView委托AView去办事</li>
+<li>事件发生后，用委托变量调用AView中的协议方法</li>
+</ul>
+<h3 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h3><p><a href="http://mobile.51cto.com/iphone-283416.htm" target="_blank" rel="external">详解Objective-C中委托和协议</a></p>
+
+      
+    </div>
+    <footer>
+      
+        <div class="alignleft">
+            <a href="/2016/01/20/iOS设计模式之委托与协议/#more" class="more-link"><i class="fa fa-chevron-right"></i>查看全文</a>
+        </div>
+        
+        
+          <div class="alignright"> 
+            <a href="http://iJack.pw/2016/01/20/iOS设计模式之委托与协议/#comment" class="comment-link">
+              <i class="fa fa-comments"></i><span class="ds-thread-count" data-thread-key="/2016/01/20/iOS设计模式之委托与协议/">&nbsp;
+              </span>
+            </a>
+          </div>
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+      <time datetime="2016-01-20T03:37:04.000Z"><a href="/2016/01/19/iOS设计模式之单例模式/">Tue, Jan 19 2016, 10:37:04 pm</a></time>
+
+  
+    <h1 class="title"><a href="/2016/01/19/iOS设计模式之单例模式/">浅谈iOS设计模式之单例模式</a></h1>
+  
+
+
+
+  
+  <div class="tags">
+  	<i class="fa fa-tag"></i>
+    <a href="/tags/iOS/">iOS</a>, <a href="/tags/设计模式/">设计模式</a>
+  </div>
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <hr>
+<p>本文主要描述的问题主要有：如何在iOS下创建单例，以及如何创建高效的线程安全的单例，以及如何使用依赖注入来避免单例的滥用。</p>
+<h2 id="1-1-如何创建单例"><a href="#1-1-如何创建单例" class="headerlink" title="1.1 如何创建单例"></a>1.1 如何创建单例</h2><p>iOS中单例模式很常见，比如Cocoa中的一些对象方法，<code>[UIColor redColor]</code>等等。</p>
+<p>顾名思义，单例模式确保了一个类只有一个实例。</p>
+<p>一个常见的写法如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* Singleton.h */</span></div><div class="line"><span class="meta">#import <span class="meta-string">&lt;Foundation/Foundation.h&gt;</span></span></div><div class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">Singleton</span> : <span class="title">NSObject</span></span></div><div class="line">+ (Singleton *)sharedInstance;</div><div class="line"><span class="keyword">@end</span></div><div class="line"></div><div class="line"></div><div class="line"><span class="comment">/* Singleton.m */</span></div><div class="line"><span class="meta">#import <span class="meta-string">"Singleton.h"</span></span></div><div class="line"></div><div class="line"><span class="keyword">static</span> Singleton *instance = <span class="literal">nil</span>;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">Singleton</span> </span></div><div class="line">+ (Singleton *)sharedInstance &#123; </div><div class="line">    <span class="keyword">if</span> (!instance) &#123; </div><div class="line">        instance = [[<span class="keyword">super</span> alloc] init];</div><div class="line">    &#125; </div><div class="line">    <span class="keyword">return</span> instance; </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这种写法的优点是，可以延迟加载，按需分配内存以节省开销。</p>
+<p>但是，这并非一个线程安全的写法，比如两个或多个线程并发的调用<code>sharedInstance</code>方法，有可能会得到多个实例，这里有三种方法来创建一个线程安全的单例。</p>
+<h2 id="1-2-线程安全的单例"><a href="#1-2-线程安全的单例" class="headerlink" title="1.2 线程安全的单例"></a>1.2 线程安全的单例</h2><h3 id="1-2-1-synchronized"><a href="#1-2-1-synchronized" class="headerlink" title="1.2.1 @synchronized"></a>1.2.1 @synchronized</h3><p>可以使用@synchronized进行加锁，代码如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* Singleton.h */</span></div><div class="line"><span class="meta">#import <span class="meta-string">&lt;Foundation/Foundation.h&gt;</span></span></div><div class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">Singleton</span> : <span class="title">NSObject</span></span></div><div class="line">+ (Singleton *)sharedInstance;</div><div class="line"><span class="keyword">@end</span></div><div class="line"></div><div class="line"><span class="comment">/* Singleton.m */</span></div><div class="line"><span class="meta">#import <span class="meta-string">"Singleton.h"</span></span></div><div class="line"></div><div class="line"><span class="keyword">static</span> Singleton *instance = <span class="literal">nil</span>;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">Singleton</span> </span></div><div class="line">+ (Singleton *)sharedInstance &#123; </div><div class="line">    <span class="keyword">@synchronized</span> (<span class="keyword">self</span>) &#123;</div><div class="line">        <span class="keyword">if</span> (!instance) &#123; </div><div class="line">            instance = [[<span class="keyword">super</span> alloc] init];</div><div class="line">        &#125; </div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> instance; </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这种写法也是懒加载，不过虽然保证了线程安全但是由于锁的存在当多线程访问时，性能会降低。</p>
+<h3 id="1-2-2-双重检查锁"><a href="#1-2-2-双重检查锁" class="headerlink" title="1.2.2 双重检查锁"></a>1.2.2 双重检查锁</h3><p>双重检查锁，可以避免对除第一次调用外的所有调用都实行同步的昂贵代价。</p>
+<p>就是并不是每次进入<code>sharedInstance</code>方法都需要同步，而是先不同步，进入方法过后，先检查实例是否存在，如果不存在才进入下面的同步块，这是第一重检查。</p>
+<p>进入同步块过后，再次检查实例是否存在，如果不存在，就在同步的情况下创建一个实例，这是第二重检查。</p>
+<p>如此，就只需要同步一次了，从而减少了多次在同步情况下进行判断所浪费的时间。</p>
+<p>代码如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* Singleton.h */</span></div><div class="line"><span class="meta">#import <span class="meta-string">&lt;Foundation/Foundation.h&gt;</span></span></div><div class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">Singleton</span> : <span class="title">NSObject</span></span></div><div class="line">+ (Singleton *)sharedInstance;</div><div class="line"><span class="keyword">@end</span></div><div class="line"></div><div class="line"><span class="comment">/* Singleton.m */</span></div><div class="line"><span class="meta">#import <span class="meta-string">"Singleton.h"</span></span></div><div class="line"></div><div class="line"><span class="keyword">static</span> Singleton *instance = <span class="literal">nil</span>;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">Singleton</span> </span></div><div class="line">+ (Singleton *)sharedInstance &#123; </div><div class="line">    <span class="keyword">if</span> (!instance) &#123;</div><div class="line">        <span class="keyword">@synchronized</span> (<span class="keyword">self</span>) &#123;</div><div class="line">            <span class="keyword">if</span> (!instance) &#123; </div><div class="line">                instance = [[<span class="keyword">super</span> alloc] init];</div><div class="line">            &#125; </div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> instance; </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这段代码乍一看，似乎没什么问题，问题是CPU和编译器可能会对内存访问指令进行重新排序。参考了一下<a href="https://www.mikeash.com/pyblog/friday-qa-2009-10-02-care-and-feeding-of-singletons.html" target="_blank" rel="external">Care and Feeding of Singletons</a>这篇文章中的方法。可以在访问变量前插入<code>barriers</code>并且使用<code>volatile</code>关键字。内存<code>barriers</code>在<code>libkern/OSAtomic.h</code>头文件中，这用来解决CPU的问题，<code>vilatile</code>关键字用来解决编译器的问题。代码如下：</p>
+<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* Singleton.h */</span></div><div class="line"><span class="meta">#import <span class="meta-string">&lt;Foundation/Foundation.h&gt;</span></span></div><div class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">Singleton</span> : <span class="title">NSObject</span></span></div><div class="line">+ (Singleton *)sharedInstance;</div><div class="line"><span class="keyword">@end</span></div><div class="line"></div><div class="line"></div><div class="line"><span class="comment">/* Singleton.m */</span></div><div class="line"><span class="meta">#import <span class="meta-string">"Singleton.h"</span></span></div><div class="line"><span class="meta">#import <span class="meta-string">"libkern/OSAtomic.h"</span></span></div><div class="line"><span class="keyword">static</span> Singleton * <span class="keyword">volatile</span> instance = <span class="literal">nil</span>;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">Singleton</span> </span></div><div class="line">+ (Singleton *)sharedInstance &#123; </div><div class="line">    <span class="keyword">if</span> (!instance) &#123;</div><div class="line">        <span class="keyword">@synchronized</span> (<span class="keyword">self</span>) &#123;</div><div class="line">            <span class="keyword">if</span> (!instance) &#123; </div><div class="line">                OSMemoryBarrier();</div><div class="line">                instance = [[<span class="keyword">super</span> alloc] init];</div><div class="line">            &#125; </div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    OSMemoryBarrier();</div><div class="line">    <span class="keyword">return</span> instance; </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>下面简单的介绍一下内存屏障<code>memory barrier</code>与<code>volatile</code>：</p>
+<h4 id="1-2-2-1-内存屏障"><a href="#1-2-2-1-内存屏障" class="headerlink" title="1.2.2.1 内存屏障"></a>1.2.2.1 内存屏障</h4><p>为了达到最佳的性能，通常会对汇编基本的指令进行重新排序以尽可能保持CPU的指令像流水线一样。</p>
+<p>看似独立的变量实际上有可能相互影响，编译器优化有可能把这些变量的访问更新为错误的顺序，导致潜在不不正确结果。</p>
+<p>内存屏障即可避免汇编指令的重新排序优化，迫使CPU先完成位于障碍前的任何加载和存储操作，然后才允许它执行位于屏障后的操作。</p>
+<p>内存屏障可以确保一个线程的内存操作可以按照预定的顺序完成。</p>
+<h4 id="1-2-2-2-volatile"><a href="#1-2-2-2-volatile" class="headerlink" title="1.2.2.2 volatile"></a>1.2.2.2 volatile</h4><p>第一次接触这个关键字是操作系统的实验上，<a href="http://www.desgemini.com" target="_blank" rel="external">董师兄</a>教我如何修改出一份无法被查重的代码，哈哈哈哈。</p>
+<p>编译器可以进行代码优化，把变量加载进寄存器中，对于一般的变量没有什么问题，但是如果这个变量对多个线程可见，这种优化就可能会阻止其他线程发现这个变量的改变。在变量之前加上关键字volatile可以强制编译器每次使用变量的时候都从内存里面加载。</p>
+<p>简单地说：<code>volatile</code>就是告诉编译器，在读取该变量数值的时候，应该直接从内存读取，而不是从寄存器读取。</p>
+<h4 id="1-2-2-3-总结"><a href="#1-2-2-3-总结" class="headerlink" title="1.2.2.3 总结"></a>1.2.2.3 总结</h4><p>虽然相较于上一种方法减少了部分锁的开销，但是这个开销依然不小。而且实现方式本身颇具争议且复杂。</p>
+<h3 id="1-2-3-GCD"><a href="#1-2-3-GCD" class="headerlink" title="1.2.3 GCD"></a>1.2.3 GCD</h3><p>这里主要利用GCD中的<code>dispatch_once</code>方法，这是最普遍也是苹果最推荐的方法，函数原型如下：</p>
+<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void</span> <span class="built_in">dispatch_once</span>(</div><div class="line">   <span class="built_in">dispatch_once_t</span> *predicate,</div><div class="line">   dispatch_block_t block);</div></pre></td></tr></table></figure>
+<p>单例实现代码如下：</p>
+<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* Singleton.h */</span></div><div class="line"><span class="meta">#import <span class="meta-string">&lt;Foundation/Foundation.h&gt;</span></span></div><div class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">Singleton</span> : <span class="title">NSObject</span></span></div><div class="line">+ (Singleton *)sharedInstance;</div><div class="line"><span class="keyword">@end</span></div><div class="line"></div><div class="line"></div><div class="line"><span class="comment">/* Singleton.m */</span></div><div class="line"><span class="meta">#import <span class="meta-string">"Singleton.h"</span></span></div><div class="line"></div><div class="line"><span class="keyword">static</span> Singleton *instance = <span class="literal">nil</span>;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">Singleton</span> </span></div><div class="line">+ (Singleton *)sharedInstance &#123; </div><div class="line"></div><div class="line">    <span class="keyword">static</span> <span class="built_in">dispatch_once_t</span> predicate;</div><div class="line"></div><div class="line">    <span class="built_in">dispatch_once</span>(&amp;predicate, ^&#123;</div><div class="line">        instance = [[Singleton alloc] init];</div><div class="line">    &#125;);</div><div class="line">    <span class="keyword">return</span> instance; </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这样的方法有很多优势，首先满足了线程安全问题，其次很好满足静态分析器要求。</p>
+<p>GCD可以确保以更快的方式完成这些检测，它可以保证<code>block</code>中的代码在任何线程通过<code>dispatch_once</code>调用之前被执行，但它不会强制每次调用这个函数都让代码进行同步控制。</p>
+<p>苹果的文档<a href="https://developer.apple.com/library/ios/documentation/Performance/Reference/GCD_libdispatch_Ref/index.html#//apple_ref/c/func/dispatch_once" target="_blank" rel="external">documentation for dispatch_once</a>是这么说的：</p>
+<blockquote>
+<p>The predicate must point to a variable stored in global or static scope. The result of using a predicate with automatic or dynamic storage (including Objective-C instance variables) is undefined.</p>
+</blockquote>
+<p>所以，如果你的predicate不是静态的、不是全局的，还是不能用GCD。其实如果你去看这个函数所在的头文件，你会发现目前它的实现其实是一个宏。</p>
+<h2 id="2-1-单例的滥用"><a href="#2-1-单例的滥用" class="headerlink" title="2.1 单例的滥用"></a>2.1 单例的滥用</h2><p>在iOS中可以很容易的创建一个单例，不过人们似乎针对单例模式本身也有一些争议。有人说它是<a href="http://misko.hevery.com/2008/08/17/singletons-are-pathological-liars/" target="_blank" rel="external">骗子</a>，或者是梦魇。</p>
+<p>一个普遍的结论是这样的：单例应该只用来保存全局的状态，并且不能和任何作用域绑定。如果这些状态的作用域比一个完整的应用程序的生命周期要短，那么这个状态就不应该使用单例来管理。</p>
+<p>这里不能否认的是单例模式确实有它的好处，如下会展示一些使用单例模式带来的问题。</p>
+<h3 id="2-1-1-单元测试的例子"><a href="#2-1-1-单元测试的例子" class="headerlink" title="2.1.1 单元测试的例子"></a>2.1.1 单元测试的例子</h3><p>这里借用<a href="http://objc.io" target="_blank" rel="external">objc.io</a>的一个例子，类似QQ和微信在App中就可以打开网页，如下是构建这个网页查看器的代码，其中构建了一个简单的<code>URL cache</code>。</p>
+<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">SPURLCache</span></span></div><div class="line"></div><div class="line">+ (SPCache *)sharedURLCache;</div><div class="line"></div><div class="line">- (<span class="keyword">void</span>)storeCachedResponse:(<span class="built_in">NSCachedURLResponse</span> *)cachedResponse forRequest:(<span class="built_in">NSURLRequest</span> *)request;</div><div class="line"></div><div class="line"><span class="keyword">@end</span></div></pre></td></tr></table></figure>
+<p>这里构建三个测试用例，如下：</p>
+<ul>
+<li><p>无网络连接时展示错误信息</p>
+</li>
+<li><p>正确处理服务器返回的请求错误</p>
+</li>
+<li><p>成功请求，展示服务器返回的内容</p>
+</li>
+</ul>
+<p>至此，你可能还看不出任何的问题，但是当程序运行一段时间后，有人改变了测试用例的顺序时，就有可能出现问题。</p>
+<p>比如先运行处理成功的那个测试用例，然后再运行其他两个。此时没有网，也可以展示此前缓存的用户数据了，这与此前预期的不一致。因为<code>URL cache</code>这个单例把不同测试用例之间的<code>response</code>缓存起来了。</p>
+<p>持久化状态一直是单元测试的宿敌，因为单元测试在各个测试用例相互独立的情况下才有效。如果状态从一个测试用例传递到了另外一个，这样就和测试用例的执行顺序就有关系了。</p>
+<h3 id="2-1-2-生命周期"><a href="#2-1-2-生命周期" class="headerlink" title="2.1.2 生命周期"></a>2.1.2 生命周期</h3><p>此前介绍了如何使用GCD创建一个线程安全的单例，但是这并不意味着以后程序的运行过程中就只会有一个实例了。</p>
+<p>一个普遍的例子如下：</p>
+<p>构建一个好友列表，每个好友都会有一个头像，可以自动下载并缓存图片。</p>
+<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">SPThumbnailCache</span> : <span class="title">NSObject</span></span></div><div class="line"></div><div class="line">+ (<span class="keyword">instancetype</span>)sharedThumbnailCache;</div><div class="line"></div><div class="line">- (<span class="keyword">void</span>)cacheProfileImage:(<span class="built_in">NSData</span> *)imageData forUserId:(<span class="built_in">NSString</span> *)userId;</div><div class="line">- (<span class="built_in">NSData</span> *)cachedProfileImageForUserId:(<span class="built_in">NSString</span> *)userId;</div><div class="line"></div><div class="line"><span class="keyword">@end</span></div></pre></td></tr></table></figure>
+<p>和此前一样，看起来似乎一切正常。但是如果考虑到注销/账户切换功能呢？</p>
+<p>用户相关的状态存储在全局单例中。当用户注销后，我们希望能够清理掉所有的硬盘上的持久化状态。否则，就会把这些被遗弃的数据残留在用户的设备上，浪费宝贵的硬盘空间。对于用户登出又登录了一个新的账号这种情况，我们也想能够对这个新用户使用一个全新的<code>SPThumbnailCache</code>实例。</p>
+<p>问题在于按照定义单例被认为是「创建一次，永久有效」的实例。或许你可能会想到如下的一中解决方案，即在用户登出时移除这个单例：</p>
+<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">static</span> SPThumbnailCache *sharedThumbnailCache;</div><div class="line"></div><div class="line">+ (<span class="keyword">instancetype</span>)sharedThumbnailCache</div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (!sharedThumbnailCache) &#123;</div><div class="line">        sharedThumbnailCache = [[<span class="keyword">self</span> alloc] init];</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> sharedThumbnailCache;</div><div class="line">&#125;</div><div class="line"></div><div class="line">+ (<span class="keyword">void</span>)tearDown</div><div class="line">&#123;</div><div class="line">    <span class="comment">// The SPThumbnailCache will clean up persistent states when deallocated</span></div><div class="line">    sharedThumbnailCache = <span class="literal">nil</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>乍一看这段代码似乎也没什么问题，但是如果仔细考虑，假设当用户正在执行登出操作时，有一些后台任务正在执行把图片保存到缓存中的操作，</p>
+<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">dispatch_async</span>(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, <span class="number">0</span>), ^&#123;</div><div class="line">    [[SPThumbnailCache sharedThumbnailCache] cacheProfileImage:newImage forUserId:userId];</div><div class="line">&#125;);</div></pre></td></tr></table></figure>
+<p>需要保证在所有的后台任务完成前，<code>tearDown</code>一定不能执行。</p>
+<p>这确保了<code>newImage</code>可以被正确的清理掉。或者，我们需要保证在缩略图 cache 被移除时，后台缓存任务一定要被取消掉。否则，一个新的缩略图 cache 的实例将会被延迟创建，并且此前用户的数据会被存储在它里面。</p>
+<p>由于单例自己管理自己的生命周期，关闭一个单例变得相当的复杂和困难。</p>
+<p>分析至此，得到的结论是：这个缩略图<code>cache</code>从来就不应该作为一个单例！</p>
+<p>就像一开始写到的，这里得到的教训是，单例应该只用来保存全局的状态，并且不能和任何作用域绑定。如果这些状态的作用域比一个完整的应用程序的生命周期要短，那么这个状态就不应该使用单例来管理。</p>
+<h3 id="2-2-使用依赖注入来避免单例的滥用"><a href="#2-2-使用依赖注入来避免单例的滥用" class="headerlink" title="2.2 使用依赖注入来避免单例的滥用"></a>2.2 使用依赖注入来避免单例的滥用</h3><p>单例对局部作用域的状态有非常多的坏处，如下是一个避免这些坏处的例子：</p>
+<p>图片<code>cache</code>的状态是和具体的用户绑定的，所以定义一个如下的<code>user</code>类：</p>
+<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">SPUser</span> : <span class="title">NSObject</span></span></div><div class="line"></div><div class="line"><span class="keyword">@property</span> (<span class="keyword">nonatomic</span>, <span class="keyword">readonly</span>) SPThumbnailCache *thumbnailCache;</div><div class="line"></div><div class="line"><span class="keyword">@end</span></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">SPUser</span></span></div><div class="line"></div><div class="line">- (<span class="keyword">instancetype</span>)init</div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> ((<span class="keyword">self</span> = [<span class="keyword">super</span> init])) &#123;</div><div class="line">        _thumbnailCache = [[SPThumbnailCache alloc] init];</div><div class="line"></div><div class="line">        <span class="comment">// Initialize other user-specific state...</span></div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">self</span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">@end</span></div></pre></td></tr></table></figure>
+<p>定义好友列表：</p>
+<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">@interface</span> <span class="title">SPFriendListViewController</span> : <span class="title">UIViewController</span></span></div><div class="line"></div><div class="line">- (<span class="keyword">instancetype</span>)initWithUser:(SPUser *)user;</div><div class="line"></div><div class="line"><span class="keyword">@end</span></div></pre></td></tr></table></figure>
+<p>把<code>user</code>对象作为参数传递给这个<code>view controller</code>即可。这种把依赖性传递给依赖对象的技术就叫做<code>依赖注入</code>。</p>
+<p>它具有如下的几条优点：</p>
+<ul>
+<li><p>对于阅读这个<code>SPFriendListViewController</code>头文件的人来说，可以很清楚的知道它只有在有登录用户的情况下才会被展示。</p>
+</li>
+<li><p><code>SPFriendListViewController</code>只要还在使用中，就可以强引用<code>user</code>对象，就算缓存后台任务还没有完成，其他地方的代码也可以创建和使用一个全新的<code>SPUser</code>对象，而不会在清理第一个实例时阻塞用户交互。</p>
+</li>
+</ul>
+<p>当用户登录一个新账号，应该能够构建并且与全新的<code>SPThumbnailCache</code>交互，而不需要再在销毁老的缩略图<code>cache</code>上花费精力。</p>
+<p>基于对象管理的典型规则，老的<code>view controllers</code>和老的缩略图<code>cache</code>应该能够自己在后台延迟被清理掉。</p>
+<p>简而言之，我们应该隔离用户 A 相关联的状态和用户 B 相关联的状态</p>
+<p>其实单例的滥用问题主要集中在作用域上，在面向对象思想中，我们追求的总是一个最小的作用域，但是单例可以被程序中的任何地方访问，它的全局性导致了滥用的问题。</p>
+<p>单例应该只用来保存全局的状态，并且不能和任何作用域绑定。如果这些状态的作用域比一个完整的应用程序的生命周期要短，那么这个状态就不应该使用单例来管理。(重要的事情说三遍，哈哈哈)</p>
+
+      
+    </div>
+    <footer>
+      
+        <div class="alignleft">
+            <a href="/2016/01/19/iOS设计模式之单例模式/#more" class="more-link"><i class="fa fa-chevron-right"></i>查看全文</a>
+        </div>
+        
+        
+          <div class="alignright"> 
+            <a href="http://iJack.pw/2016/01/19/iOS设计模式之单例模式/#comment" class="comment-link">
+              <i class="fa fa-comments"></i><span class="ds-thread-count" data-thread-key="/2016/01/19/iOS设计模式之单例模式/">&nbsp;
+              </span>
+            </a>
+          </div>
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+      <time datetime="2016-01-16T04:26:12.000Z"><a href="/2016/01/15/百度地理位置反编码API/">Fri, Jan 15 2016, 11:26:12 pm</a></time>
+
+  
+    <h1 class="title"><a href="/2016/01/15/百度地理位置反编码API/">百度地理位置反编码API</a></h1>
+  
+
+
+
+  
+  <div class="tags">
+  	<i class="fa fa-tag"></i>
+    <a href="/tags/iOS/">iOS</a>, <a href="/tags/API/">API</a>
+  </div>
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <hr>
+<p>就像<a href="http://www.saitjr.com/" target="_blank" rel="external">sai姐</a>说的，iOS系统自带的地理反编码难用，而且也没必要给App集成庞大的百度地图SDK。</p>
+<p>在sai的博客里看到了，这里记录一下，哈哈。</p>
+<h2 id="接口信息"><a href="#接口信息" class="headerlink" title="接口信息"></a>接口信息</h2><h3 id="地址："><a href="#地址：" class="headerlink" title="地址："></a>地址：</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">http://api.map.baidu.com/?qt=rgc&amp;x=13407612.87&amp;y=3550364.78&amp;dis_poi=1</div></pre></td></tr></table></figure>
+<p>qt 和 dis_poi 是固定参数，后者表示返回周围的商家信息的数量。<br>x 和 y 参数分别表示转成 MC 坐标的经纬度</p>
+<h3 id="返回JSON结构："><a href="#返回JSON结构：" class="headerlink" title="返回JSON结构："></a>返回JSON结构：</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div></pre></td><td class="code"><pre><div class="line">&#123;</div><div class="line">  <span class="string">"content"</span>: &#123;</div><div class="line">    <span class="string">"address"</span>: <span class="string">"浙江省嘉兴市桐乡市崇德中路47"</span>,  <span class="comment">// 具体位置</span></div><div class="line">    <span class="string">"address_detail"</span>: &#123;</div><div class="line">      <span class="string">"city"</span>: <span class="string">"嘉兴市"</span>,</div><div class="line">      <span class="string">"city_code"</span>: <span class="number">334</span>,</div><div class="line">      <span class="string">"country"</span>: <span class="string">"中国"</span>,</div><div class="line">      <span class="string">"country_code"</span>: <span class="number">0</span>,</div><div class="line">      <span class="string">"direction"</span>: <span class="string">"附近"</span>,</div><div class="line">      <span class="string">"distance"</span>: <span class="string">"26"</span>,</div><div class="line">      <span class="string">"district"</span>: <span class="string">"桐乡市"</span>,</div><div class="line">      <span class="string">"province"</span>: <span class="string">"浙江省"</span>,</div><div class="line">      <span class="string">"street"</span>: <span class="string">"崇德中路"</span>,</div><div class="line">      <span class="string">"street_number"</span>: <span class="string">"47"</span></div><div class="line">    &#125;,</div><div class="line">    <span class="string">"business"</span>: <span class="string">""</span>,</div><div class="line">    <span class="string">"poi_desc"</span>: <span class="string">""</span>,</div><div class="line">    <span class="string">"poi_region"</span>: [],</div><div class="line">    <span class="string">"point"</span>: &#123;</div><div class="line">      <span class="string">"x"</span>: <span class="string">"13407612.87"</span>,  <span class="comment">// 纬度MC转码后的值</span></div><div class="line">      <span class="string">"y"</span>: <span class="string">"3550364.78"</span>    <span class="comment">// 经度MC转码后的值</span></div><div class="line">    &#125;,</div><div class="line">    <span class="string">"surround_poi"</span>: []</div><div class="line">  &#125;,</div><div class="line"><span class="comment">// ------------------ 下面都是一些没用的返回值了，可以不用管 -----------------</span></div><div class="line">  <span class="string">"result"</span>: &#123;</div><div class="line">    <span class="string">"error"</span>: <span class="number">0</span>,</div><div class="line">    <span class="string">"type"</span>: <span class="number">44</span>,</div><div class="line">    <span class="string">"qt"</span>: <span class="string">"rgc"</span>,</div><div class="line">    <span class="string">"x"</span>: <span class="string">"13407612.87"</span>,</div><div class="line">    <span class="string">"y"</span>: <span class="string">"3550364.78"</span>,</div><div class="line">    <span class="string">"dis_poi"</span>: <span class="string">"1"</span>,</div><div class="line">    <span class="string">"time"</span>: <span class="number">0</span></div><div class="line">  &#125;,</div><div class="line">  <span class="string">"current_city"</span>: &#123;</div><div class="line">    <span class="string">"sup_bus"</span>: <span class="number">0</span>,</div><div class="line">    <span class="string">"sup_business_area"</span>: <span class="number">0</span>,</div><div class="line">    <span class="string">"sup_lukuang"</span>: <span class="number">0</span>,</div><div class="line">    <span class="string">"sup_subway"</span>: <span class="number">0</span></div><div class="line">  &#125;,</div><div class="line">  <span class="string">"hot_city"</span>: [</div><div class="line">    <span class="string">"北京市|131"</span>,</div><div class="line">    <span class="string">"上海市|289"</span>,</div><div class="line">    <span class="string">"广州市|257"</span>,</div><div class="line">    <span class="string">"深圳市|340"</span>,</div><div class="line">    <span class="string">"成都市|75"</span>,</div><div class="line">    <span class="string">"天津市|332"</span>,</div><div class="line">    <span class="string">"南京市|315"</span>,</div><div class="line">    <span class="string">"杭州市|179"</span>,</div><div class="line">    <span class="string">"武汉市|218"</span>,</div><div class="line">    <span class="string">"重庆市|132"</span></div><div class="line">  ]</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+      
+    </div>
+    <footer>
+      
+        <div class="alignleft">
+            <a href="/2016/01/15/百度地理位置反编码API/#more" class="more-link"><i class="fa fa-chevron-right"></i>查看全文</a>
+        </div>
+        
+        
+          <div class="alignright"> 
+            <a href="http://iJack.pw/2016/01/15/百度地理位置反编码API/#comment" class="comment-link">
+              <i class="fa fa-comments"></i><span class="ds-thread-count" data-thread-key="/2016/01/15/百度地理位置反编码API/">&nbsp;
+              </span>
+            </a>
+          </div>
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+      <time datetime="2016-01-14T05:10:18.000Z"><a href="/2016/01/14/浅谈iOS中的闭包（一)/">Thu, Jan 14 2016, 12:10:18 am</a></time>
+
+  
+    <h1 class="title"><a href="/2016/01/14/浅谈iOS中的闭包（一)/">浅谈iOS中的闭包(一)</a></h1>
+  
+
+
+
+  
+  <div class="tags">
+  	<i class="fa fa-tag"></i>
+    <a href="/tags/iOS/">iOS</a>, <a href="/tags/闭包/">闭包</a>
+  </div>
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <hr>
+<h2 id="1-1-用途"><a href="#1-1-用途" class="headerlink" title="1.1 用途"></a>1.1 用途</h2><p>闭包在很多语言中都有应用，它在OC中被叫做<code>Blocks</code>，在Java中被叫做<code>Lambda表达式</code>，也有直接叫做匿名函数的。</p>
+<p>简单的说闭包就是一种带有局部变量的匿名函数。</p>
+<p>在C语言中，函数可以通过函数名直接调用，也可以通过函数指针调用，但是这都需要开发者知道函数的名字(函数指针也需要知道函数名以便在被赋值时得到函数的地址)。</p>
+<p>可能你会问，为什么要用闭包呢？一个常见的例子如下:</p>
+<p>实现按钮的回调方法。</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">int</span> buttonId = <span class="number">0</span>;</div><div class="line"></div><div class="line"><span class="keyword">void</span> buttonCallBack(<span class="keyword">int</span> event)&#123;</div><div class="line">    <span class="built_in">NSLog</span>(<span class="string">@"id = %d,event = %d"</span>,buttonId, event);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>现在把情况扩展到多个按钮，如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void</span> buttonCallBack(<span class="keyword">int</span> buttonId, <span class="keyword">int</span> event)&#123;</div><div class="line">    <span class="built_in">NSLog</span>(<span class="string">@"id = %d,event = %d"</span>,buttonId, event);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">void</span> setButtonCallbacks()&#123; <span class="comment">//工厂方法</span></div><div class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; MAX; i++) &#123;</div><div class="line">        buttonId = i;</div><div class="line">        setButtonCallBack(i,&amp;buttonCallBack); <span class="comment">//省略单个set的方法了，只为说明思路</span></div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>显然回调方法保存了按钮的ID以及回调函数的指针。闭包的出现可以使代码更加简洁，可以直接将回调卸载函数内，而不用再去写回调函数，例子如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void</span> setButtonCallbacks()&#123;</div><div class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; MAX; i++) &#123;</div><div class="line">        setButtonCallbackUsingBlock(i,^(<span class="keyword">int</span> event)&#123;</div><div class="line">            <span class="built_in">NSLog</span>(<span class="string">@"id = %d,event = %d"</span>,buttonId, event);</div><div class="line">        &#125;);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>注意：</strong>当用于函数参数时，Block 应该放在参数列表的最后一个。</p>
+<p>下面介绍<code>Blocks</code>的语法：</p>
+<h2 id="1-2-语法"><a href="#1-2-语法" class="headerlink" title="1.2 语法"></a>1.2 语法</h2><p><code>Blocks</code>的语法有些晦涩，以至于有<a href="http://fuckingblocksyntax.com" target="_blank" rel="external">fuckingblocksyntax</a>这个网站专门记录语法。</p>
+<p>如下是<code>Blocks</code>的语法：</p>
+<p><code>^</code> <code>返回值类型</code> <code>参数列表</code> <code>表达式</code></p>
+<p>比如： </p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">^<span class="keyword">int</span> (<span class="keyword">int</span> count)&#123;<span class="keyword">return</span> count + <span class="number">1</span>;&#125;</div></pre></td></tr></table></figure>
+<p><code>Blocks</code>是可以进行缩写的，如下</p>
+<h3 id="1-2-1-省略返回值类型"><a href="#1-2-1-省略返回值类型" class="headerlink" title="1.2.1 省略返回值类型"></a>1.2.1 省略返回值类型</h3><p>当省略返回值类型时，如果反表达式中又<code>return</code>语句就使用该返回值的类型，如果表达式没有<code>return</code>语句就是<code>void</code>类型。</p>
+<p>如果有多个<code>return</code>语句，那么其类型必须相同。省略返回值类型后，例子如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">^(<span class="keyword">int</span> count)&#123;<span class="keyword">return</span> count +<span class="number">1</span>&#125;;</div></pre></td></tr></table></figure>
+<h3 id="1-2-2-省略参数参数列表"><a href="#1-2-2-省略参数参数列表" class="headerlink" title="1.2.2 省略参数参数列表"></a>1.2.2 省略参数参数列表</h3><p>如果不使用参数，参数列表也可以省略，例子如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">^<span class="keyword">void</span> (<span class="keyword">void</span>) &#123;<span class="built_in">NSLog</span>(<span class="string">@"helloworld"</span>);&#125;</div></pre></td></tr></table></figure>
+<p>可以省略 <code>返回值类型</code>与<code>参数列表</code>缩写为如下的形式：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">^&#123;<span class="built_in">NSLog</span>(<span class="string">@"helloworld"</span>);&#125;</div></pre></td></tr></table></figure>
+<h3 id="1-2-2-Block-类型"><a href="#1-2-2-Block-类型" class="headerlink" title="1.2.2 Block 类型"></a>1.2.2 Block 类型</h3><p>与C语言中的变量相同，<code>Block</code>类型的变量可以作一下用途。</p>
+<ul>
+<li>局部变量</li>
+<li>函数参数</li>
+<li>静态变量</li>
+<li>静态全局变量</li>
+<li>全局变量</li>
+</ul>
+<p>如下是一个常见的声明<code>Block</code>类型的变量的例子：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">int</span> (^blk) (<span class="keyword">int</span>) = ^(<span class="keyword">int</span> count)&#123;<span class="keyword">return</span> count + <span class="number">1</span>;&#125;</div></pre></td></tr></table></figure>
+<p>当然，在函数参数中使用<code>Block</code>类型的变量就可以向函数传递<code>Block</code>，在函数返回值中指定<code>Block</code>类型，可以将<code>Block</code>作为函数的返回值返回。分别对应如下的两个例子：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void</span> function (<span class="keyword">int</span> (^blk) (<span class="keyword">int</span>))</div></pre></td></tr></table></figure>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">int</span> (^func())(<span class="keyword">int</span>) &#123;</div><div class="line">    <span class="keyword">return</span> ^(<span class="keyword">int</span> count)&#123;<span class="keyword">return</span> count + <span class="number">1</span>;&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>到这里，<code>Block</code>的语法变得着实复杂了，可以通过<code>typedef</code>做简化。如下是简化的例子：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">typedef</span> <span class="keyword">int</span> (^blk_t) (<span class="keyword">int</span>);</div><div class="line"></div><div class="line"><span class="comment">//原来的写法</span></div><div class="line"><span class="keyword">void</span> func(<span class="keyword">int</span> (^blk) (<span class="keyword">int</span>))</div><div class="line"><span class="comment">//新的写法</span></div><div class="line"><span class="keyword">void</span> func(blk_t blk)</div><div class="line"></div><div class="line"><span class="comment">//原来的写法</span></div><div class="line"><span class="keyword">int</span> (^func()(<span class="keyword">int</span>))</div><div class="line"><span class="comment">//新的写法</span></div><div class="line">blk_t func()</div></pre></td></tr></table></figure>
+<h3 id="1-2-3-捕获外部变量"><a href="#1-2-3-捕获外部变量" class="headerlink" title="1.2.3 捕获外部变量"></a>1.2.3 捕获外部变量</h3><p><code>Block</code>中捕获外部的局部变量具有瞬间性，即如果变量被<code>Block</code>捕获后修改了值，那么<code>Block</code>中捕获的变量的值并不会改变。</p>
+<p>此外，<code>Block</code>无法给捕获的外部变量赋值。</p>
+<h3 id="1-2-4-block修饰符"><a href="#1-2-4-block修饰符" class="headerlink" title="1.2.4 __block修饰符"></a>1.2.4 __block修饰符</h3><p><code>Block</code>捕获外部的局部变量后，无法改变它的值，使用附有 <code>__block</code>修饰符的局部变量可以在<code>Block</code>中赋值。</p>
+<h3 id="1-2-5-注意事项"><a href="#1-2-5-注意事项" class="headerlink" title="1.2.5 注意事项"></a>1.2.5 注意事项</h3><p><code>Block</code>中虽然无法给捕获的局部变量赋值，但是对于OC的对象的一些方法，是可以执行的，比如捕获一个NSMutableArray后，执行<code>addObject</code>方法。这不会有任何问题，因为这相当于捕获了对象的实例指针。</p>
+<p>对于C语言中的数组，<code>Block</code>中并没有实现对之的捕获方法。可以使用指针来解决这个问题。</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">char</span> *text = <span class="string">"helloworld"</span>;</div><div class="line"></div><div class="line"><span class="keyword">void</span> (^blk)(<span class="keyword">void</span>) = ^&#123;</div><div class="line">    <span class="built_in">NSLog</span>(<span class="string">@"%c"</span>,text[<span class="number">2</span>]);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+      
+    </div>
+    <footer>
+      
+        <div class="alignleft">
+            <a href="/2016/01/14/浅谈iOS中的闭包（一)/#more" class="more-link"><i class="fa fa-chevron-right"></i>查看全文</a>
+        </div>
+        
+        
+          <div class="alignright"> 
+            <a href="http://iJack.pw/2016/01/14/浅谈iOS中的闭包（一)/#comment" class="comment-link">
+              <i class="fa fa-comments"></i><span class="ds-thread-count" data-thread-key="/2016/01/14/浅谈iOS中的闭包（一)/">&nbsp;
+              </span>
+            </a>
+          </div>
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+      <time datetime="2016-01-13T04:47:25.000Z"><a href="/2016/01/12/hello-2016/">Tue, Jan 12 2016, 11:47:25 pm</a></time>
+
+  
+    <h1 class="title"><a href="/2016/01/12/hello-2016/">你好2016</a></h1>
+  
+
+
+
+  
+  <div class="tags">
+  	<i class="fa fa-tag"></i>
+    <a href="/tags/碎碎念/">碎碎念</a>
+  </div>
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <hr>
+<p>每年过去都要写一个年终总结，展望一下2016，这次也不例外，不过是晚了一些。</p>
+<p>总是希望有一个节点，能让人驻足，稍作停留，然后回头望一望，给一段时间内的自己打个分，加个油，歇一歇，再向前看一看，免得走错了路。</p>
+<p>今天就是一个天然的用来回顾的好日子，也许只是无数个平常日子中的一个，但错落有致的出现在每年的这个时候，你无法躲避它，也不想就这样错过，所以就赋予了它更特殊的涵义。</p>
+<p>这一年里，感触到事情要慢慢做，话要慢慢说，表意清楚是一件不太容易的事情，I`m a doer, not talker. 也别一味的迁就，委屈了自己。</p>
+<p>这一年里，开始知道有些事情自己就是做不来，不用硬撑。触碰到了太多的棱角，终于明白，原来世界那么大，自己又那么渺小。开始狂奔吧少年，开始追，忘记什么叫做麻木，什么叫做疲惫，别让自己的无知越来越多，画地为牢，把自己锁住了。静了下来，慢下来，让脚印都踩在泥土里，不再去想到底有没有夜行八百里，只有一路向前。</p>
+<p>这一年里，看了40多场电影，20多场是在大连看的，嗯，国产片确实烂。</p>
+<p>这一年里，似乎有了些小想法。有想法是好的，至少还证明自己没有活的像个行尸走肉。但想法太多，就是在逃避了，在一个想法和另一个想法之间不断切换，如果不想做一件事情，会找出一万个理由，但想做一件事情，只需要一个。</p>
+<p>这一年里，参加了一次开发者大会，见到了很多传说中的大牛。我get的点就是：兴趣+测试驱动技术成长和开发。开心快乐是最重要的，功利选手走不远，运气选手也走不远。一是学知识，二是学观点，三是学大牛们的生活态度。</p>
+<p>这一年里，总结起来就是着眼当下，仰望星空。找到自己的兴趣，广泛的听取别人的建议但保持自己的思想并不断修正。做好手头的事情，但是时时刻刻关注领域的最前沿。时时刻刻 比较自己和大牛们的差距，努力追赶。</p>
+<p>不如就趁着今夜，放空几分钟，抬头望一望星空。</p>
+<p>最后的最后，I`m still single.</p>
+
+      
+    </div>
+    <footer>
+      
+        <div class="alignleft">
+            <a href="/2016/01/12/hello-2016/#more" class="more-link"><i class="fa fa-chevron-right"></i>查看全文</a>
+        </div>
+        
+        
+          <div class="alignright"> 
+            <a href="http://iJack.pw/2016/01/12/hello-2016/#comment" class="comment-link">
+              <i class="fa fa-comments"></i><span class="ds-thread-count" data-thread-key="/2016/01/12/hello-2016/">&nbsp;
+              </span>
+            </a>
+          </div>
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+      <time datetime="2016-01-03T22:22:17.000Z"><a href="/2016/01/03/浅谈iOS中的内存管理三/">Sun, Jan 3 2016, 5:22:17 pm</a></time>
+
+  
+    <h1 class="title"><a href="/2016/01/03/浅谈iOS中的内存管理三/">浅谈iOS中的内存管理(三)</a></h1>
+  
+
+
+
+  
+  <div class="tags">
+  	<i class="fa fa-tag"></i>
+    <a href="/tags/iOS/">iOS</a>, <a href="/tags/内存管理/">内存管理</a>
+  </div>
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <hr>
+<p>通过ARC，编译器会在恰当的时机帮我们处理<strong>引用计数</strong>的相关部分。对于每个文件，你都可以单独的 开启/关闭 ARC。</p>
+<h2 id="3-1-所有权修饰符"><a href="#3-1-所有权修饰符" class="headerlink" title="3.1 所有权修饰符"></a>3.1 所有权修饰符</h2><ul>
+<li>__strong 修饰符</li>
+<li>__weak 修饰符</li>
+<li>__unsafe_unretained 修饰符</li>
+<li>__autoreleasing 修饰符</li>
+</ul>
+<h3 id="3-1-1-strong"><a href="#3-1-1-strong" class="headerlink" title="3.1.1 __strong"></a>3.1.1 __strong</h3><p><code>__strong</code>修饰符是<code>id</code>类型和对象类型默认的所有权修饰符，也就是说，如下的两段代码等价：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&#123;</div><div class="line">    <span class="keyword">id</span> obj = [[<span class="built_in">NSObject</span> alloc] init];</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&#123;</div><div class="line">    <span class="keyword">id</span> __<span class="keyword">strong</span> obj = [[<span class="built_in">NSObject</span> alloc] init];</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>在MRC下，与如下的代码等价：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&#123;</div><div class="line">    <span class="keyword">id</span> obj = [[<span class="built_in">NSObject</span> alloc] init];</div><div class="line">    [obj release];</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>被<code>__strong</code>修饰符所修饰的变量obj在超出其变量作用域时，也就是废弃时会释放它此前被赋予的对象。<code>__strong</code>表示对对象的强引用。持有强引用的变量在超出其作用域时被废弃，随着强引用的失效，引用的对象会随之释放。</p>
+<h3 id="3-1-2-weak"><a href="#3-1-2-weak" class="headerlink" title="3.1.2 __weak"></a>3.1.2 __weak</h3><p><code>__weak</code>修饰符即表示弱引用，主要用来解决循环引用问题。一个常见的循环引用的例子如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div></pre></td><td class="code"><pre><div class="line">//定义声明</div><div class="line">@interface Test : NSObject</div><div class="line">&#123;</div><div class="line">    id __strong obj_;</div><div class="line">&#125;</div><div class="line">- (void) setObject: (id __strong)obj;</div><div class="line">@end</div><div class="line"></div><div class="line">@implementation Test</div><div class="line">- (id) init&#123;</div><div class="line">    self = [super init];</div><div class="line">    if (self)&#123;</div><div class="line"></div><div class="line">    &#125;</div><div class="line">    return self;</div><div class="line">&#125;</div><div class="line"></div><div class="line">- (void)setObject:(id __strong)obj&#123;</div><div class="line">    obj_ = obj;</div><div class="line">&#125;</div><div class="line">@end</div><div class="line"></div><div class="line">// 循环引用的代码</div><div class="line">&#123;</div><div class="line">    id t0 = [[Test alloc] init]; // 对象A</div><div class="line">    // t0持有Test对象A的强引用</div><div class="line"></div><div class="line">    id t1 = [[Test alloc] init]; // 对象B</div><div class="line">    // t1持有Test对象B的强引用</div><div class="line">    </div><div class="line">    [t0 setObject:t1];</div><div class="line">    // Test对象A的obj_成员变量持有Test对象B的强引用。</div><div class="line">    // 此时，持有Test对象B的强引用的变量为 Test对象A的obj_和t1</div><div class="line"></div><div class="line">    [t1 setObject:t0];</div><div class="line">    // Test对象B的obj_成员变量持有Test对象A的强引用。</div><div class="line">    // 此时，持有Test对象A的强引用的变量为 Test对象B的obj_和t0</div><div class="line">&#125;</div><div class="line">t0 t1超出作用域，强引用失效，所以自动释放Test对象A和B</div><div class="line">此时，持有Test对象A的强引用的变量为Test对象B的obj_, 持有Test对象B的强引用的变量为Test对象A的obj_.</div></pre></td></tr></table></figure>
+<p>把成员变量obj_的修饰符变成<code>__weak</code>即可解决这个问题。弱引用不能持有对象实例。</p>
+<p>在持有某个对象的弱引用时，如果该对象被废弃，则此弱引用将会自动失效且被置为nil，代码如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">id</span> __<span class="keyword">weak</span> obj1 = <span class="literal">nil</span>;</div><div class="line">&#123;</div><div class="line">    <span class="keyword">id</span> __<span class="keyword">strong</span> obj = [[<span class="built_in">NSObject</span> alloc] init];</div><div class="line">    obj1 = obj;</div><div class="line">    <span class="built_in">NSLog</span>(<span class="string">"%@"</span>,obj1);</div><div class="line">&#125;</div><div class="line"><span class="built_in">NSLog</span>(<span class="string">"%@"</span>,obj1);</div></pre></td></tr></table></figure>
+<p>运行这段代码，符合上文的描述。</p>
+<h3 id="3-1-3-unsafe-unretained"><a href="#3-1-3-unsafe-unretained" class="headerlink" title="3.1.3 __unsafe_unretained"></a>3.1.3 __unsafe_unretained</h3><p><code>__unsafe_unretained</code>人如其名，是一个不安全的修饰符。该引用不会保持被引用对象的存活，如果对象没有强引用了，它不会被置为nil。如果它引用的对象被回收掉了，该指针就变成了野指针。</p>
+<p>开启ARC后，如果部署iOS版本是5.0以上，请使用<code>__weak</code>，5.0以下的才用<code>__unsafe_unretained</code>。</p>
+<p>(现在还有人在兼容iOS5以下么？)</p>
+<h3 id="3-1-4-autoreleasing"><a href="#3-1-4-autoreleasing" class="headerlink" title="3.1.4 __autoreleasing"></a>3.1.4 __autoreleasing</h3><p>使用<code>__autoreleasing</code>修饰符修饰的变量会注册到<code>autoreleasepool</code>中，并取得非自己生成并持有的对象。</p>
+<p>在ARC下不能直接使用<code>autorelease</code>方法，另外也不能使用<code>NSAutoreleasePool</code>类。虽然无法直接使用，但是当ARC开启时<code>autorelease</code>是起作用的，如下是MRC下和ARC下等价的两段代码：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//MRC下</span></div><div class="line"><span class="built_in">NSAutoreleasePool</span> *pool = [[<span class="built_in">NSAutoreleasePool</span> alloc] init];</div><div class="line"><span class="keyword">id</span> obj = [[<span class="built_in">NSObject</span> alloc] init];</div><div class="line">[obj autorelease];</div><div class="line">[pool drain];</div></pre></td></tr></table></figure>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//ARC下</span></div><div class="line"><span class="keyword">@autoreleasepool</span> &#123;</div><div class="line">    <span class="keyword">id</span> __auotreleasing obj = [[<span class="built_in">NSObject</span> alloc] init];</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>当然，不使用<code>__autoreleasing</code>修饰符的对象也能注册到<code>autoreleasepool</code>，示例如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">- (<span class="keyword">id</span>)getObject &#123;</div><div class="line">    <span class="keyword">id</span> __<span class="keyword">strong</span> obj = [[<span class="built_in">NSObject</span> alloc] init];</div><div class="line">    <span class="keyword">return</span> obj;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>由于return使得变量超出作用域，所以会自动释放，但该对象作为函数的返回值，编译器会将它注册到<code>autoreleasepool</code>。</p>
+<p>在访问<code>__weak</code>修饰的变量时，必须访问注册到<code>autoreleasepool</code>的对象，因为只是持有弱引用，而在访问引用对象的过程中，该对象有可能被废弃。</p>
+<p>对象的指针在没有显式指定时会被附加上<code>__autoreleasing</code>修饰符。</p>
+
+      
+    </div>
+    <footer>
+      
+        <div class="alignleft">
+            <a href="/2016/01/03/浅谈iOS中的内存管理三/#more" class="more-link"><i class="fa fa-chevron-right"></i>查看全文</a>
+        </div>
+        
+        
+          <div class="alignright"> 
+            <a href="http://iJack.pw/2016/01/03/浅谈iOS中的内存管理三/#comment" class="comment-link">
+              <i class="fa fa-comments"></i><span class="ds-thread-count" data-thread-key="/2016/01/03/浅谈iOS中的内存管理三/">&nbsp;
+              </span>
+            </a>
+          </div>
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+
+<nav id="pagination">
+  
+    <a href="/" class="alignleft prev"><i class="fa fa-long-arrow-left">上一页</i></a>
+  
+  
+    <a href="/page/3/" class="alignright next">下一页<i class="fa fa-long-arrow-right"></i></a>
+  
+  <div class="clearfix"></div>
+</nav>
+
+<script src="/js/jquery.anystretch.min.js"></script>
+<script src="/js/cover.js"></script>
+
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div>
+  
+  &copy; 2016 Jack Alan
+  
+</div>
+Powered by <a href="http://iJack.pw/" title="Jack Alan" target="_blank" rel="external">Jack Alan</a> and <a href="http://pages.github.com/" title="GitHub Pages" target="_blank" rel="external">GitHub Pages</a>
+
+<div class="clearfix"></div>
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3Ffe3ef7effe40ca4903cec1453f5c809f' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+ What ?
+<script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1254084718'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s95.cnzz.com/z_stat.php%3Fid%3D1254084718%26show%3Dpic' type='text/javascript'%3E%3C/script%3E"));</script>
+<OBJECT style="border: 0px" type="text/x-scriptlet" data="" width=0 Height=0 ></OBJECT>
+ </footer>
+  
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
+
+
+
+
+    <script type="text/javascript">
+        (function(){
+
+            $(window).scroll(function(){
+
+                var scrollTop = $(window).scrollTop();
+                if ( scrollTop >200 ){
+                    $("#main-nav").removeClass('normal_mode').addClass('top_mode');
+                } else{
+                    $("#main-nav").removeClass('top_mode').addClass('normal_mode');
+                }
+
+            });
+
+        })();
+    </script>
+
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript">
+  (function($){
+    $('.fancybox').fancybox({
+      'titlePosition': 'inside'
+    });
+  })(jQuery);
+  </script>
+
+
+
+    
+    <script type="text/javascript">
+      var duoshuoQuery = {short_name:"ijack"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.src = 'http://static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0] 
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+<script type="text/javascript">
+  
+  $(function(){
+
+    $('.title').hover(
+      function() {      
+        $(this).stop().animate(
+          {'marginLeft': '10px'}, 200
+        );   
+      }, 
+      function() {       
+        $(this).stop().animate({'marginLeft': '0px'}, 200);      
+      
+    });   
+
+  });
+
+</script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,311 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>浅谈iOS中的闭包(一) | Jack Alan</title>
+  <meta name="author" content="Jack Alan">
+  
+  <meta name="description" content="1.1 用途闭包在很多语言中都有应用，它在OC中被叫做Blocks，在Java中被叫做Lambda表达式，也有直接叫做匿名函数的。
+简单的说闭包就是一种带有局部变量的匿名函数。
+在C语言中，函数可以通过函数名直接调用，也可以通过函数指针调用，但是这都需要开发者知道函数的名字(函数指针也需要知道函数名">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="浅谈iOS中的闭包(一)"/>
+  <meta property="og:site_name" content="Jack Alan"/>
+
+  
+    <meta property="og:image" content="undefined"/>
+  
+
+  <link href="/favicon.ico" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="Jack Alan" type="application/atom+xml">
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+<link rel="stylesheet" href="/css/style.css">
+  <script src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  
+</head>
+
+<body>
+  <header id="header" class='normal_mode'>
+    <nav id="main-nav">
+  <ul class='container'>
+    
+      <li><a href="/">Home</a></li>
+    
+      <li><a href="/archives">Archives</a></li>
+    
+      <li><a href="/Books&Courses">Books &amp; Courses</a></li>
+    
+      <li><a href="/Links">Friends</a></li>
+    
+      <li><a href="/AboutMe">About</a></li>
+    
+  </ul>
+  <div class="clearfix"></div>
+</nav>
+  </header>
+  <div id="content" class="container">
+    <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
+      <time datetime="2016-01-14T05:10:18.000Z"><a href="/2016/01/14/浅谈iOS中的闭包（一)/">Thu, Jan 14 2016, 12:10:18 am</a></time>
+
+  
+    <h1 class="title">浅谈iOS中的闭包(一)</h1>
+  
+
+
+
+  
+  <div class="tags">
+  	<i class="fa fa-tag"></i>
+    <a href="/tags/iOS/">iOS</a>, <a href="/tags/闭包/">闭包</a>
+  </div>
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <hr>
+<h2 id="1-1-用途"><a href="#1-1-用途" class="headerlink" title="1.1 用途"></a>1.1 用途</h2><p>闭包在很多语言中都有应用，它在OC中被叫做<code>Blocks</code>，在Java中被叫做<code>Lambda表达式</code>，也有直接叫做匿名函数的。</p>
+<p>简单的说闭包就是一种带有局部变量的匿名函数。</p>
+<p>在C语言中，函数可以通过函数名直接调用，也可以通过函数指针调用，但是这都需要开发者知道函数的名字(函数指针也需要知道函数名以便在被赋值时得到函数的地址)。</p>
+<p>可能你会问，为什么要用闭包呢？一个常见的例子如下:</p>
+<p>实现按钮的回调方法。</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">int</span> buttonId = <span class="number">0</span>;</div><div class="line"></div><div class="line"><span class="keyword">void</span> buttonCallBack(<span class="keyword">int</span> event)&#123;</div><div class="line">    <span class="built_in">NSLog</span>(<span class="string">@"id = %d,event = %d"</span>,buttonId, event);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>现在把情况扩展到多个按钮，如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void</span> buttonCallBack(<span class="keyword">int</span> buttonId, <span class="keyword">int</span> event)&#123;</div><div class="line">    <span class="built_in">NSLog</span>(<span class="string">@"id = %d,event = %d"</span>,buttonId, event);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">void</span> setButtonCallbacks()&#123; <span class="comment">//工厂方法</span></div><div class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; MAX; i++) &#123;</div><div class="line">        buttonId = i;</div><div class="line">        setButtonCallBack(i,&amp;buttonCallBack); <span class="comment">//省略单个set的方法了，只为说明思路</span></div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>显然回调方法保存了按钮的ID以及回调函数的指针。闭包的出现可以使代码更加简洁，可以直接将回调卸载函数内，而不用再去写回调函数，例子如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void</span> setButtonCallbacks()&#123;</div><div class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; MAX; i++) &#123;</div><div class="line">        setButtonCallbackUsingBlock(i,^(<span class="keyword">int</span> event)&#123;</div><div class="line">            <span class="built_in">NSLog</span>(<span class="string">@"id = %d,event = %d"</span>,buttonId, event);</div><div class="line">        &#125;);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>注意：</strong>当用于函数参数时，Block 应该放在参数列表的最后一个。</p>
+<p>下面介绍<code>Blocks</code>的语法：</p>
+<h2 id="1-2-语法"><a href="#1-2-语法" class="headerlink" title="1.2 语法"></a>1.2 语法</h2><p><code>Blocks</code>的语法有些晦涩，以至于有<a href="http://fuckingblocksyntax.com" target="_blank" rel="external">fuckingblocksyntax</a>这个网站专门记录语法。</p>
+<p>如下是<code>Blocks</code>的语法：</p>
+<p><code>^</code> <code>返回值类型</code> <code>参数列表</code> <code>表达式</code></p>
+<p>比如： </p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">^<span class="keyword">int</span> (<span class="keyword">int</span> count)&#123;<span class="keyword">return</span> count + <span class="number">1</span>;&#125;</div></pre></td></tr></table></figure>
+<p><code>Blocks</code>是可以进行缩写的，如下</p>
+<h3 id="1-2-1-省略返回值类型"><a href="#1-2-1-省略返回值类型" class="headerlink" title="1.2.1 省略返回值类型"></a>1.2.1 省略返回值类型</h3><p>当省略返回值类型时，如果反表达式中又<code>return</code>语句就使用该返回值的类型，如果表达式没有<code>return</code>语句就是<code>void</code>类型。</p>
+<p>如果有多个<code>return</code>语句，那么其类型必须相同。省略返回值类型后，例子如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">^(<span class="keyword">int</span> count)&#123;<span class="keyword">return</span> count +<span class="number">1</span>&#125;;</div></pre></td></tr></table></figure>
+<h3 id="1-2-2-省略参数参数列表"><a href="#1-2-2-省略参数参数列表" class="headerlink" title="1.2.2 省略参数参数列表"></a>1.2.2 省略参数参数列表</h3><p>如果不使用参数，参数列表也可以省略，例子如下：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">^<span class="keyword">void</span> (<span class="keyword">void</span>) &#123;<span class="built_in">NSLog</span>(<span class="string">@"helloworld"</span>);&#125;</div></pre></td></tr></table></figure>
+<p>可以省略 <code>返回值类型</code>与<code>参数列表</code>缩写为如下的形式：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">^&#123;<span class="built_in">NSLog</span>(<span class="string">@"helloworld"</span>);&#125;</div></pre></td></tr></table></figure>
+<h3 id="1-2-2-Block-类型"><a href="#1-2-2-Block-类型" class="headerlink" title="1.2.2 Block 类型"></a>1.2.2 Block 类型</h3><p>与C语言中的变量相同，<code>Block</code>类型的变量可以作一下用途。</p>
+<ul>
+<li>局部变量</li>
+<li>函数参数</li>
+<li>静态变量</li>
+<li>静态全局变量</li>
+<li>全局变量</li>
+</ul>
+<p>如下是一个常见的声明<code>Block</code>类型的变量的例子：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">int</span> (^blk) (<span class="keyword">int</span>) = ^(<span class="keyword">int</span> count)&#123;<span class="keyword">return</span> count + <span class="number">1</span>;&#125;</div></pre></td></tr></table></figure>
+<p>当然，在函数参数中使用<code>Block</code>类型的变量就可以向函数传递<code>Block</code>，在函数返回值中指定<code>Block</code>类型，可以将<code>Block</code>作为函数的返回值返回。分别对应如下的两个例子：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void</span> function (<span class="keyword">int</span> (^blk) (<span class="keyword">int</span>))</div></pre></td></tr></table></figure>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">int</span> (^func())(<span class="keyword">int</span>) &#123;</div><div class="line">    <span class="keyword">return</span> ^(<span class="keyword">int</span> count)&#123;<span class="keyword">return</span> count + <span class="number">1</span>;&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>到这里，<code>Block</code>的语法变得着实复杂了，可以通过<code>typedef</code>做简化。如下是简化的例子：</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">typedef</span> <span class="keyword">int</span> (^blk_t) (<span class="keyword">int</span>);</div><div class="line"></div><div class="line"><span class="comment">//原来的写法</span></div><div class="line"><span class="keyword">void</span> func(<span class="keyword">int</span> (^blk) (<span class="keyword">int</span>))</div><div class="line"><span class="comment">//新的写法</span></div><div class="line"><span class="keyword">void</span> func(blk_t blk)</div><div class="line"></div><div class="line"><span class="comment">//原来的写法</span></div><div class="line"><span class="keyword">int</span> (^func()(<span class="keyword">int</span>))</div><div class="line"><span class="comment">//新的写法</span></div><div class="line">blk_t func()</div></pre></td></tr></table></figure>
+<h3 id="1-2-3-捕获外部变量"><a href="#1-2-3-捕获外部变量" class="headerlink" title="1.2.3 捕获外部变量"></a>1.2.3 捕获外部变量</h3><p><code>Block</code>中捕获外部的局部变量具有瞬间性，即如果变量被<code>Block</code>捕获后修改了值，那么<code>Block</code>中捕获的变量的值并不会改变。</p>
+<p>此外，<code>Block</code>无法给捕获的外部变量赋值。</p>
+<h3 id="1-2-4-block修饰符"><a href="#1-2-4-block修饰符" class="headerlink" title="1.2.4 __block修饰符"></a>1.2.4 __block修饰符</h3><p><code>Block</code>捕获外部的局部变量后，无法改变它的值，使用附有 <code>__block</code>修饰符的局部变量可以在<code>Block</code>中赋值。</p>
+<h3 id="1-2-5-注意事项"><a href="#1-2-5-注意事项" class="headerlink" title="1.2.5 注意事项"></a>1.2.5 注意事项</h3><p><code>Block</code>中虽然无法给捕获的局部变量赋值，但是对于OC的对象的一些方法，是可以执行的，比如捕获一个NSMutableArray后，执行<code>addObject</code>方法。这不会有任何问题，因为这相当于捕获了对象的实例指针。</p>
+<p>对于C语言中的数组，<code>Block</code>中并没有实现对之的捕获方法。可以使用指针来解决这个问题。</p>
+<figure class="highlight objc"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">char</span> *text = <span class="string">"helloworld"</span>;</div><div class="line"></div><div class="line"><span class="keyword">void</span> (^blk)(<span class="keyword">void</span>) = ^&#123;</div><div class="line">    <span class="built_in">NSLog</span>(<span class="string">@"%c"</span>,text[<span class="number">2</span>]);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+      
+    </div>
+    <footer>
+      
+          
+<!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+  <span class="jiathis_txt">分享到：</span>
+  <a class="jiathis_button_weixin">微信</a>
+  <a class="jiathis_button_tsina">新浪微博</a>
+  <a class="jiathis_button_renren">人人网</a>
+  <a class="jiathis_button_qzone">QQ空间</a>
+  <a class="jiathis_button_douban">豆瓣</a>
+  <a class="jiathis_button_pocket">Pocket</a>
+  <a href="http://www.jiathis.com/share?uid=901656" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank">更多</a>
+  <a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript" src="http://v3.jiathis.com/code_mini/jia.js?uid=901656" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+          <div class="clearfix"></div>
+          <nav id="pagination">
+  
+    <a href="/2016/01/15/百度地理位置反编码API/" class="alignleft prev"><i class="fa fa-long-arrow-left">上一页</i></a>
+  
+  
+    <a href="/2016/01/12/hello-2016/" class="alignright next">下一页<i class="fa fa-long-arrow-right"></i></a>
+  
+  <div class="clearfix"></div>
+</nav>
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+<section id="comment">
+  <h1 class="title">Kommentare</h1>
+
+  
+      <!-- Duoshuo Comment BEGIN -->
+<div class="ds-thread" data-thread-key="/2016/01/14/浅谈iOS中的闭包（一)/"></div>
+<!-- Duoshuo Comment END -->
+  
+</section>
+
+
+
+    <div class="clearfix"></div>
+  </div>
+  <footer id="footer" class="inner"><div>
+  
+  &copy; 2016 Jack Alan
+  
+</div>
+Powered by <a href="http://iJack.pw/" title="Jack Alan" target="_blank" rel="external">Jack Alan</a> and <a href="http://pages.github.com/" title="GitHub Pages" target="_blank" rel="external">GitHub Pages</a>
+
+<div class="clearfix"></div>
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3Ffe3ef7effe40ca4903cec1453f5c809f' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+ What ?
+<script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1254084718'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s95.cnzz.com/z_stat.php%3Fid%3D1254084718%26show%3Dpic' type='text/javascript'%3E%3C/script%3E"));</script>
+<OBJECT style="border: 0px" type="text/x-scriptlet" data="" width=0 Height=0 ></OBJECT>
+ </footer>
+  
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
+
+
+
+
+    <script type="text/javascript">
+        (function(){
+
+            $(window).scroll(function(){
+
+                var scrollTop = $(window).scrollTop();
+                if ( scrollTop >200 ){
+                    $("#main-nav").removeClass('normal_mode').addClass('top_mode');
+                } else{
+                    $("#main-nav").removeClass('top_mode').addClass('normal_mode');
+                }
+
+            });
+
+        })();
+    </script>
+
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript">
+  (function($){
+    $('.fancybox').fancybox({
+      'titlePosition': 'inside'
+    });
+  })(jQuery);
+  </script>
+
+
+
+    
+    <script type="text/javascript">
+      var duoshuoQuery = {short_name:"ijack"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.src = 'http://static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0] 
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+<script type="text/javascript">
+  
+  $(function(){
+
+    $('.title').hover(
+      function() {      
+        $(this).stop().animate(
+          {'marginLeft': '10px'}, 200
+        );   
+      }, 
+      function() {       
+        $(this).stop().animate({'marginLeft': '0px'}, 200);      
+      
+    });   
+
+  });
+
+</script>
+
+
+
+</body>
+</html>
