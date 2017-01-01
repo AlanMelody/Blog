@@ -99,6 +99,64 @@
   <div class="post-content">
     <header>
       
+      <time datetime="2017-01-02T09:23:20.000Z"><a href="/2017/01/02/upgrade-to-https/">Mon, Jan 2 2017, 4:23:20 am</a></time>
+
+  
+    <h1 class="title"><a href="/2017/01/02/upgrade-to-https/">2017</a></h1>
+  
+
+
+
+<div class="clear"></div>
+      
+    </header>
+    <div class="entry">
+      
+        <p>2017, 升级了 https.</p>
+<p>未完、待续。</p>
+
+      
+    </div>
+    <footer>
+      
+        <div class="alignleft">
+            <a href="/2017/01/02/upgrade-to-https/#more" class="more-link"><i class="fa fa-chevron-right"></i>查看全文</a>
+        </div>
+        
+        
+          <div class="alignright"> 
+            <a href="https://iJack.pw/2017/01/02/upgrade-to-https/#comment" class="comment-link">
+              <i class="fa fa-comments"></i><span class="ds-thread-count" data-thread-key="/2017/01/02/upgrade-to-https/">&nbsp;
+              </span>
+            </a>
+          </div>
+        
+      
+      <div class="clearfix"></div>
+    </footer>
+  </div>
+</article>
+
+
+
+
+  <article class="post">
+  
+    <div class="gallery">
+  <div class="photoset">
+    
+      <img src="">
+    
+  </div>
+  <div class="control">
+    <div class="prev"></div>
+    <div class="next"></div>
+  </div>
+</div>
+  
+  <div class="post-content">
+    <header>
+      
       <time datetime="2016-06-08T21:30:37.000Z"><a href="/2016/06/08/let-it-throw/">Wed, Jun 8 2016, 5:30:37 pm</a></time>
 
   
@@ -789,111 +847,6 @@
           <div class="alignright"> 
             <a href="https://iJack.pw/2016/03/10/copy-or-not/#comment" class="comment-link">
               <i class="fa fa-comments"></i><span class="ds-thread-count" data-thread-key="/2016/03/10/copy-or-not/">&nbsp;
-              </span>
-            </a>
-          </div>
-        
-      
-      <div class="clearfix"></div>
-    </footer>
-  </div>
-</article>
-
-
-
-
-  <article class="post">
-  
-    <div class="gallery">
-  <div class="photoset">
-    
-      <img src="">
-    
-  </div>
-  <div class="control">
-    <div class="prev"></div>
-    <div class="next"></div>
-  </div>
-</div>
-  
-  <div class="post-content">
-    <header>
-      
-      <time datetime="2016-03-02T22:04:41.000Z"><a href="/2016/03/02/ARC-in-Swift/">Wed, Mar 2 2016, 5:04:41 pm</a></time>
-
-  
-    <h1 class="title"><a href="/2016/03/02/ARC-in-Swift/">浅谈iOS中的内存管理(四) - Swift中的ARC</a></h1>
-  
-
-
-
-  
-  <div class="tags">
-  	<i class="fa fa-tag"></i>
-    <a href="/tags/iOS/">iOS</a>, <a href="/tags/ARC/">ARC</a>, <a href="/tags/Swift/">Swift</a>, <a href="/tags/内存管理/">内存管理</a>
-  </div>
-
-<div class="clear"></div>
-      
-    </header>
-    <div class="entry">
-      
-        <hr>
-<blockquote>
-<p>昨晚跟<a href="http://www.cnblogs.com/SproutFicF/" target="_blank" rel="external">张瑞鹏</a>谈起了Rust语言，其实一直对Rust语言充满了敬畏。Google了一下Rust vs Swift似乎也没什么靠谱的回答，可能二者目前区别不是很大。不过<a href="https://www.quora.com/Programming-Languages/What-are-the-differences-between-Rust-and-Swift" target="_blank" rel="external">Quora</a>上的一个回答引发了我的兴趣。</p>
-</blockquote>
-<p>这里撇开Swift中的即时编译、交互式编程，只关注内存管理这方面。(<a href="http://nondot.org/sabre" target="_blank" rel="external">Chris Lattner</a>在他的博客中也提到这两者特性只是他个人的一时兴起。)</p>
-<p><a href="https://www.quora.com/profile/Troy-Harvey-1" target="_blank" rel="external">Troy Harvey</a>说Rust的所有权系统(Ownership system)可以100%的防止内存泄露的发生，而Swift中使用的自动引用计数 98%可以杜绝内存泄露的发生(由于存在循环强引用)。</p>
-<p>这里就来探索Swift中的ARC与此前OC中的ARC发生了哪些改变？这里把重点放在如何在Swift中解决循环强引用。</p>
-<h3 id="无主引用-unowned-reference"><a href="#无主引用-unowned-reference" class="headerlink" title="无主引用 (unowned reference)"></a>无主引用 (unowned reference)</h3><p>在之前的三篇文章中，可以得知，在OC中<code>weak</code>可以用来破除两个强引用的循环引用。在Swift中，则又多了一个无主引用(unowned reference)。</p>
-<p>弱引用(weak reference)和无主引用(unowned reference)都允许循环引用中的某一个实例引用另外一个实例而不保持强引用，这样实例就能够互相引用而不会产生循环强引用的副作用。</p>
-<p>那么弱引用(weak reference)和无主引用(unowned reference)在Swift中又有什么区别呢？<strong>一般来说，对于在生命周期中会变为<code>nil</code>的实例使用弱引用(weak reference)。对于在初始化赋值后再也不会变为<code>nil</code>的实例，使用无主引用(unowned reference)。</strong></p>
-<p>无主引用永远都是有值的，这与弱引用不同。因此，无主引用总是被定义为非可选类型。可以在声明前加入<code>unowned</code>关键字以表示一个无主引用。</p>
-<p>由于无主引用是非可选类型，所以不需要在使用时将其展开。无主引用总是可以被直接访问。不过ARC无法在实例被销毁后将无主引用设为<code>nil</code>，因为非可选类型不允许被赋值为<code>nil</code>。</p>
-<p>文档中的一个例子如下：</p>
-<p>如下定义了<code>Customer</code>和<code>CreditCard</code>两个类，用于表示银行的客户和客户的信用卡。这两个类中，每一个都将另一个类的实例作为自身的属性。在这个数据模型中，有一点与其他循环强引用的例子不同：一个客户可能有或者没有信用卡，但是一张信用卡总是对应着一个确定的客户。为了表示这种关系，<code>Customer</code>类有一个可选类型的<code>card</code>属性，但是<code>CreditCard</code>类有一个非可选类型的<code>customer</code>属性。</p>
-<p>由于信用卡总是对应着一个客户，因此将<code>customer</code>属性定义为无主引用，</p>
-<figure class="highlight swift"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Customer</span> </span>&#123;</div><div class="line">    <span class="keyword">let</span> name: <span class="type">String</span></div><div class="line">    <span class="keyword">var</span> card: <span class="type">CreditCard</span>?</div><div class="line">    <span class="keyword">init</span> (name: <span class="type">String</span>) &#123;</div><div class="line">        <span class="keyword">self</span>.name = name</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">deinit</span> &#123;</div><div class="line">        <span class="built_in">print</span>(<span class="string">"<span class="subst">\(name)</span> is being deinitialized."</span>)</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">CreditCard</span> </span>&#123;</div><div class="line">    <span class="keyword">let</span> number: <span class="type">UInt64</span></div><div class="line">    <span class="keyword">unowned</span> <span class="keyword">let</span> customer: <span class="type">Customer</span></div><div class="line">    <span class="keyword">init</span>(number: <span class="type">UInt64</span>, customer: <span class="type">Customer</span>) &#123;</div><div class="line">        <span class="keyword">self</span>.number = number</div><div class="line">        <span class="keyword">self</span>.customer = customer</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">deinit</span>&#123;</div><div class="line">        <span class="built_in">print</span>(<span class="string">"Card #<span class="subst">\(number)</span> is being deinitialized."</span>)</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>在这个模型中，<code>Customer</code>实例持有对<code>CreditCard</code>实例的强引用, 而<code>CreditCard</code>实例持有对<code>Customer</code>实例的无主引用。</p>
-<p>还有可能存在另一种场景：在这种场景中，两个属性都必须有值，并且初始化完成后永远不会为<code>nil</code>。在这种场景中，需要一个类使用无主属性，而另外一个类使用隐式解析可选属性。</p>
-<p>如下定义了<code>Country</code>和<code>City</code>两个类，在这个模型中，每个城市必须属于一个国家，每个国家必须有一个首都城市。</p>
-<figure class="highlight swift"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Country</span> </span>&#123;</div><div class="line">    <span class="keyword">let</span> name: <span class="type">String</span></div><div class="line">    <span class="keyword">var</span> capitalCity: <span class="type">City</span>!</div><div class="line">    <span class="keyword">init</span>(name: <span class="type">String</span>, capitalName: <span class="type">String</span>)&#123;</div><div class="line">        <span class="keyword">self</span>.name = name</div><div class="line">        <span class="keyword">self</span>.capitalCity = <span class="type">City</span>(name: capitalName, country: <span class="keyword">self</span>)</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">City</span> </span>&#123;</div><div class="line">    <span class="keyword">let</span> name: <span class="type">String</span></div><div class="line">    <span class="keyword">unowned</span> <span class="keyword">let</span> country: <span class="type">Country</span></div><div class="line">    <span class="keyword">init</span>(name: <span class="type">String</span>, country: <span class="type">Country</span>) &#123;</div><div class="line">        <span class="keyword">self</span>.name = name</div><div class="line">        <span class="keyword">self</span>.country = country</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p><code>Country</code>的构造函数调用了<code>City</code>的构造函数。然而只有<code>Country</code>的实例完全初始化完后， <code>Country</code>的构造函<br>数才能把<code>self</code>传给<code>City</code>的构造函数。为了满足这种需求，通过在类型结尾处加上感叹号(<code>City!</code>)的方式，将<code>Country</code>的<code>capitalCity</code>属性声明为隐式解析可选类型的属性。这表示像其他可选类型一样，<code>capitalCity</code>属性的默认值为<code>nil</code>，但是不需要展开它的值就能访问它。</p>
-<p>由于<code>capitalCity</code>默认值为<code>nil</code>，一旦<code>Country</code>的实例在构造函数中给<code>name</code>属性赋值后，整个初始化过程就完成了。这代表一旦<code>name</code>属性被赋值后，<code>Country</code>的构造函数就能引用并传递隐式的<code>self</code>。<code>Country</code>的构造函数在赋值<code>capitalCity</code>时，就能将<code>self</code>作为参数传递给<code>City</code>的构造函数。</p>
-<p>以上的意义在于你可以通过一条语句同时创建<code>Country</code>和<code>City</code>的实例，而不产生循环强引用，并且<code>capitalCity</code>的属性能被直接访问，而不需要通过感叹号来展开它的可选值。</p>
-<h3 id="闭包引起的循环引用"><a href="#闭包引起的循环引用" class="headerlink" title="闭包引起的循环引用"></a>闭包引起的循环引用</h3><p>当一个闭包被赋值给类实例的某个属性，并且这个闭包体中又使用了这个类实例时，也会出现循环引用。</p>
-<p>如下的例子用来展示一个由闭包引起的循环引用的发生：</p>
-<figure class="highlight swift"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">HTMLElement</span> </span>&#123;</div><div class="line">    <span class="keyword">let</span> name: <span class="type">String</span></div><div class="line">    <span class="keyword">let</span> text: <span class="type">String</span>?</div><div class="line">    <span class="built_in">lazy</span> <span class="keyword">var</span> asHTML: <span class="type">Void</span> -&gt; <span class="type">String</span> = &#123;</div><div class="line">        <span class="keyword">if</span> <span class="keyword">let</span> text = <span class="keyword">self</span>.text &#123;</div><div class="line">            <span class="keyword">return</span> <span class="string">"&lt;<span class="subst">\(<span class="keyword">self</span>.name)</span>&gt;<span class="subst">\(text)</span>&lt;/<span class="subst">\(<span class="keyword">self</span>.name)</span>&gt;"</span></div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            <span class="keyword">return</span> <span class="string">"&lt;<span class="subst">\(<span class="keyword">self</span>.name)</span> /&gt;"</span></div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">init</span>(name:<span class="type">String</span>, text:<span class="type">String</span>? = <span class="literal">nil</span>) &#123;</div><div class="line">        <span class="keyword">self</span>.name = name</div><div class="line">        <span class="keyword">self</span>.text = text</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">deinit</span> &#123;</div><div class="line">        <span class="built_in">print</span>(<span class="string">"<span class="subst">\(name)</span> is being deinitialized."</span>)</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>这个例子中闭包在其闭包体内使用了<code>self</code>(引用了<code>self.name</code>和<code>self.tex
-t</code>)，因此闭包捕获了<code>self</code>，这意味着闭包又反过来持有了<code>HTMLElement</code>实例的强引用。这样两个对象就产生了循环强引用。</p>
-<blockquote>
-<p>Note: 虽然闭包多次使用了<code>self</code>，但它只捕获<code>HTMLElement</code>实例的一个强引用。</p>
-</blockquote>
-<p>Swift 中对此提供了一中优雅的解决方案叫做闭包捕获列表(<code>closuer capture list</code>)。</p>
-<p>定义捕获列表作为闭包的一部分，通过这种方式可以解决闭包和类实例之间的循环强引用。</p>
-<p>捕获列表定义了闭包体内捕获一个或者多个引用类型的规则。跟解决两个类实例间的循环强引用一样，可以声明每个捕<br>获的引用为弱引用或无主引用。</p>
-<blockquote>
-<p>Note: Swift 有如下要求：只要是在闭包内使用的成员，就要用<code>self.someProperty</code>或者<code>self.someMethod()</code> (而不只是<code>someProperty</code>或<code>someMethod</code>)。这提醒你可能会一不小心就捕获了<code>self</code>。</p>
-</blockquote>
-<p>于是，我们可以改造此前的<code>asHTML</code>闭包。</p>
-<figure class="highlight swift"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">HTMLElement</span> </span>&#123;</div><div class="line">    <span class="keyword">let</span> name: <span class="type">String</span></div><div class="line">    <span class="keyword">let</span> text: <span class="type">String</span>?</div><div class="line">    <span class="built_in">lazy</span> <span class="keyword">var</span> asHTML: <span class="type">Void</span> -&gt; <span class="type">String</span> = &#123;</div><div class="line">        [<span class="keyword">unowned</span> <span class="keyword">self</span>] <span class="keyword">in</span></div><div class="line">        <span class="keyword">if</span> <span class="keyword">let</span> text = <span class="keyword">self</span>.text &#123;</div><div class="line">            <span class="keyword">return</span> <span class="string">"&lt;<span class="subst">\(<span class="keyword">self</span>.name)</span>&gt;<span class="subst">\(text)</span>&lt;/<span class="subst">\(<span class="keyword">self</span>.name)</span>&gt;"</span></div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            <span class="keyword">return</span> <span class="string">"&lt;<span class="subst">\(<span class="keyword">self</span>.name)</span> /&gt;"</span></div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">init</span>(name:<span class="type">String</span>, text:<span class="type">String</span>? = <span class="literal">nil</span>) &#123;</div><div class="line">        <span class="keyword">self</span>.name = name</div><div class="line">        <span class="keyword">self</span>.text = text</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">deinit</span> &#123;</div><div class="line">        <span class="built_in">print</span>(<span class="string">"<span class="subst">\(name)</span> is being deinitialized."</span>)</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>捕获列表常见的语法如下：</p>
-<figure class="highlight swift"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">lazy</span> <span class="keyword">var</span> someClosure: (<span class="type">Int</span>, <span class="type">String</span>) -&gt; <span class="type">String</span> = &#123;</div><div class="line">    [<span class="keyword">unowned</span> <span class="keyword">self</span>, <span class="keyword">weak</span> delegate = <span class="keyword">self</span>.delegate!] (index: <span class="type">Int</span>, stringToProcess: <span class="type">String</span>) -&gt; <span class="type">String</span> <span class="keyword">in</span></div><div class="line">    <span class="comment">// closure body goes here</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>如果闭包没有指明参数列表或者返回类型，则会通过上下文推断，那么可以把捕获列表和关键字<code>in</code>放在闭包最开始的地方:</p>
-<figure class="highlight swift"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">lazy</span> <span class="keyword">var</span> someClosure: <span class="type">Void</span> -&gt; <span class="type">String</span> = &#123;</div><div class="line">    [<span class="keyword">unowned</span> <span class="keyword">self</span>, <span class="keyword">weak</span> delegate = <span class="keyword">self</span>.delegate!] <span class="keyword">in</span></div><div class="line">    <span class="comment">// closure body goes here</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-
-      
-    </div>
-    <footer>
-      
-        <div class="alignleft">
-            <a href="/2016/03/02/ARC-in-Swift/#more" class="more-link"><i class="fa fa-chevron-right"></i>查看全文</a>
-        </div>
-        
-        
-          <div class="alignright"> 
-            <a href="https://iJack.pw/2016/03/02/ARC-in-Swift/#comment" class="comment-link">
-              <i class="fa fa-comments"></i><span class="ds-thread-count" data-thread-key="/2016/03/02/ARC-in-Swift/">&nbsp;
               </span>
             </a>
           </div>
